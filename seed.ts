@@ -3,7 +3,7 @@ import { db } from './src/lib/db'
 async function seed() {
   const user = await db.user.create({
     data: {
-      name: 'engineer.Firas',
+      name: 'Engineer Firas',
       title: 'Creative Director & Brand Strategist',
       bio: 'I help ambitious brands find their voice through strategic design, bold storytelling, and immersive digital experiences. 8+ years crafting visual identities that resonate.',
       avatar: '',

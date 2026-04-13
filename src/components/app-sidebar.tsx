@@ -110,7 +110,7 @@ export function AppSidebar() {
           </div>
           {sidebarOpen && (
             <div className="overflow-hidden">
-              <p className="text-sm font-medium text-foreground truncate">engineer.Firas</p>
+              <p className="text-sm font-medium text-foreground truncate">Engineer Firas</p>
               <p className="text-xs text-muted-foreground truncate">Creative Director</p>
             </div>
           )}

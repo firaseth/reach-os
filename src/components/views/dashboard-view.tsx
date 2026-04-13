@@ -105,7 +105,7 @@ export function DashboardView() {
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              Welcome back, <span className="bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">engineer.Firas</span>
+              Welcome back, <span className="bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">Engineer Firas</span>
             </h1>
             <p className="text-muted-foreground mt-1">
               Here&apos;s what&apos;s happening in your creative studio today.
