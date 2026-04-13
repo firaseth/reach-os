@@ -3,12 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useAppStore } from '@/lib/store'
 import {
-  Briefcase,
   Plus,
   Search,
-  Filter,
   ExternalLink,
-  Eye,
   Star,
   Sparkles,
   Loader2,
@@ -42,7 +39,6 @@ export function PortfolioView() {
   const [search, setSearch] = useState('')
   const [filterCategory, setFilterCategory] = useState('all')
   const [showNewDialog, setShowNewDialog] = useState(false)
-  const [selectedProject, setSelectedProject] = useState<any | null>(null)
   const [aiLoading, setAiLoading] = useState(false)
   const { toast } = useToast()
 
@@ -95,11 +91,7 @@ export function PortfolioView() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'write-project-description',
-          context: {
-            title: newProject.title,
-            category: newProject.category,
-            details: '',
-          },
+          context: { title: newProject.title, category: newProject.category, details: '' },
         }),
       })
       const data = await res.json()
@@ -129,7 +121,7 @@ export function PortfolioView() {
       setProjects((prev) =>
         prev.map((p) => (p.id === projectId ? { ...p, tags: JSON.stringify(tags) } : p))
       )
-      toast({ title: 'Tags Generated', description: 'AI suggested relevant tags for your project.' })
+      toast({ title: 'Tags Generated', description: 'AI suggested relevant tags.' })
     } catch {
       toast({ title: 'AI Error', description: 'Failed to generate tags', variant: 'destructive' })
     } finally {
@@ -147,15 +139,9 @@ export function PortfolioView() {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="space-y-3">
         {[...Array(6)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <div className="aspect-[16/10] bg-muted" />
-            <CardContent className="p-4">
-              <div className="h-4 bg-muted rounded w-3/4 mb-2" />
-              <div className="h-3 bg-muted rounded w-full" />
-            </CardContent>
-          </Card>
+          <div key={i} className="h-16 bg-muted/30 rounded-lg animate-pulse" />
         ))}
       </div>
     )
@@ -164,85 +150,78 @@ export function PortfolioView() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Portfolio</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            {projects.length} projects in your collection
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">Portfolio</h1>
+          <p className="text-[13px] text-muted-foreground mt-0.5">
+            {projects.length} project{projects.length !== 1 ? 's' : ''}
           </p>
         </div>
         <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg shadow-amber-500/25">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Project
+            <Button size="sm" className="h-8 text-[13px]">
+              <Plus className="w-3.5 h-3.5 mr-1.5" /> New Project
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
-              <DialogTitle>Add New Project</DialogTitle>
+              <DialogTitle className="text-base">Add Project</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 pt-2">
-              <div className="space-y-2">
-                <Label>Project Title</Label>
+            <div className="space-y-4 pt-1">
+              <div className="space-y-1.5">
+                <Label className="text-[13px]">Title</Label>
                 <Input
-                  placeholder="e.g., Lumina — Brand Identity System"
+                  placeholder="e.g., Lumina — Brand Identity"
+                  className="h-9 text-[13px]"
                   value={newProject.title}
                   onChange={(e) => setNewProject((p) => ({ ...p, title: e.target.value }))}
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <Label>Description</Label>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-xs text-amber-500 hover:text-amber-600"
+                  <Label className="text-[13px]">Description</Label>
+                  <button
+                    className="text-[11px] text-primary hover:text-primary/80 font-medium flex items-center gap-1 transition-colors"
                     onClick={handleAIDescribe}
                     disabled={!newProject.title || aiLoading}
                   >
-                    {aiLoading ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Sparkles className="w-3 h-3 mr-1" />}
+                    {aiLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
                     AI Write
-                  </Button>
+                  </button>
                 </div>
                 <Textarea
-                  placeholder="Describe the project, your role, and the impact..."
+                  placeholder="What was the project about..."
+                  className="text-[13px] min-h-[80px]"
                   value={newProject.description}
                   onChange={(e) => setNewProject((p) => ({ ...p, description: e.target.value }))}
-                  rows={4}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Category</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-[13px]">Category</Label>
                   <Select value={newProject.category} onValueChange={(v) => setNewProject((p) => ({ ...p, category: v }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
+                    <SelectTrigger className="h-9 text-[13px]"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {categories.map((c) => (
-                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                        <SelectItem key={c} value={c} className="text-[13px]">{c}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label>Live URL (optional)</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-[13px]">Live URL</Label>
                   <Input
                     placeholder="https://..."
+                    className="h-9 text-[13px]"
                     value={newProject.liveUrl}
                     onChange={(e) => setNewProject((p) => ({ ...p, liveUrl: e.target.value }))}
                   />
                 </div>
               </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <Button variant="outline" onClick={() => setShowNewDialog(false)}>Cancel</Button>
-                <Button
-                  onClick={handleCreateProject}
-                  disabled={!newProject.title}
-                  className="bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600"
-                >
-                  Create Project
+              <div className="flex justify-end gap-2 pt-1">
+                <Button variant="ghost" size="sm" className="h-8 text-[13px]" onClick={() => setShowNewDialog(false)}>Cancel</Button>
+                <Button size="sm" className="h-8 text-[13px]" onClick={handleCreateProject} disabled={!newProject.title}>
+                  Create
                 </Button>
               </div>
             </div>
@@ -251,148 +230,116 @@ export function PortfolioView() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1 max-w-xs">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
           <Input
-            placeholder="Search projects..."
-            className="pl-9"
+            placeholder="Filter projects..."
+            className="h-8 pl-8 text-[13px] bg-muted/30 border-transparent focus:border-border"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           {search && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+            <button
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground"
               onClick={() => setSearch('')}
             >
               <X className="w-3 h-3" />
-            </Button>
+            </button>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-muted-foreground" />
-          <Select value={filterCategory} onValueChange={setFilterCategory}>
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories.map((c) => (
-                <SelectItem key={c} value={c}>{c}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex gap-1">
+          {['all', ...categories.slice(0, 4)].map((c) => (
+            <button
+              key={c}
+              onClick={() => setFilterCategory(c)}
+              className={`px-2.5 h-7 rounded-md text-[12px] font-medium transition-colors ${
+                filterCategory === c
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+              }`}
+            >
+              {c === 'all' ? 'All' : c}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Project Grid */}
+      {/* Project List — table-like layout */}
       <AnimatePresence mode="wait">
         {filteredProjects.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-16"
-          >
-            <Briefcase className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-lg font-medium text-muted-foreground">No projects found</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              {search || filterCategory !== 'all'
-                ? 'Try adjusting your search or filters'
-                : 'Add your first project to get started'}
-            </p>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16">
+            <Briefcase className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
+            <p className="text-[13px] text-muted-foreground">No projects found</p>
           </motion.div>
         ) : (
-          <motion.div
-            layout
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-          >
+          <div className="border border-border rounded-lg overflow-hidden">
+            {/* Header Row */}
+            <div className="grid grid-cols-[1fr_100px_120px_32px] gap-4 px-4 py-2 border-b border-border bg-muted/20">
+              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Project</span>
+              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Category</span>
+              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Tags</span>
+              <span />
+            </div>
             {filteredProjects.map((project, i) => (
               <motion.div
                 key={project.id}
-                layout
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.3, delay: i * 0.05 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15, delay: i * 0.02 }}
+                className="grid grid-cols-[1fr_100px_120px_32px] gap-4 items-center px-4 py-3 border-b border-border last:border-0 hover:bg-accent/50 transition-colors group"
               >
-                <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden border-border/50">
-                  {/* Cover */}
-                  <div className="aspect-[16/10] bg-gradient-to-br from-muted to-muted/50 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    {project.featured && (
-                      <Badge className="absolute top-3 left-3 bg-amber-500 text-white text-[10px]">
-                        <Star className="w-3 h-3 mr-1" /> Featured
-                      </Badge>
-                    )}
-                    <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="secondary" size="sm" className="h-7 w-7 p-0 bg-white/90 hover:bg-white">
-                            <MoreHorizontal className="w-3.5 h-3.5" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleAITags(project.id)}>
-                            <Sparkles className="w-4 h-4 mr-2" />AI Suggest Tags
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Pencil className="w-4 h-4 mr-2" />Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">
-                            <Trash2 className="w-4 h-4 mr-2" />Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                {/* Project Info */}
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-md bg-gradient-to-br from-muted to-muted/50 flex-shrink-0" />
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      {project.featured && <Star className="w-3 h-3 text-amber-500 fill-amber-500 flex-shrink-0" />}
+                      <p className="text-[13px] font-medium truncate">{project.title}</p>
                     </div>
-                    <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                      <Badge variant="secondary" className="bg-white/90 text-foreground backdrop-blur-sm text-xs">
-                        {project.category}
-                      </Badge>
-                      {project.year && (
-                        <Badge variant="secondary" className="bg-white/90 text-foreground backdrop-blur-sm text-xs">
-                          {project.year}
-                        </Badge>
-                      )}
-                    </div>
+                    <p className="text-[12px] text-muted-foreground truncate mt-px">{project.description}</p>
                   </div>
-
-                  {/* Content */}
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold text-sm group-hover:text-amber-500 transition-colors line-clamp-1">
-                      {project.title}
-                    </h3>
-                    <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2 leading-relaxed">
-                      {project.description}
-                    </p>
-                    <div className="flex items-center justify-between mt-3">
-                      <div className="flex gap-1.5 flex-wrap">
-                        {JSON.parse(project.tags || '[]').slice(0, 3).map((tag: string) => (
-                          <Badge key={tag} variant="outline" className="text-[10px] px-1.5 py-0">
-                            {tag}
-                          </Badge>
-                        ))}
-                        {JSON.parse(project.tags || '[]').length > 3 && (
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                            +{JSON.parse(project.tags || '[]').length - 3}
-                          </Badge>
-                        )}
-                      </div>
-                      {project.liveUrl && (
-                        <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </a>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+                </div>
+                {/* Category */}
+                <span className="text-[12px] text-muted-foreground">{project.category}</span>
+                {/* Tags */}
+                <div className="flex gap-1 flex-wrap">
+                  {JSON.parse(project.tags || '[]').slice(0, 2).map((tag: string) => (
+                    <Badge key={tag} variant="secondary" className="text-[10px] px-1.5 py-0 h-5 bg-muted/50 text-muted-foreground border-0">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+                {/* Actions */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 flex items-center justify-center rounded hover:bg-accent">
+                      <MoreHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleAITags(project.id)}>
+                      <Sparkles className="w-3.5 h-3.5 mr-2" />AI Tags
+                    </DropdownMenuItem>
+                    <DropdownMenuItem><Pencil className="w-3.5 h-3.5 mr-2" />Edit</DropdownMenuItem>
+                    <DropdownMenuItem className="text-destructive"><Trash2 className="w-3.5 h-3.5 mr-2" />Delete</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </motion.div>
             ))}
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>
   )
 }
 
+function Briefcase(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <rect width="20" height="14" x="2" y="7" rx="2" ry="2" />
+      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+    </svg>
+  )
+}

@@ -3,8 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useAppStore } from '@/lib/store'
 import {
-  Plus,
-  Search,
   Sparkles,
   Loader2,
   ArrowLeft,
@@ -15,6 +13,9 @@ import {
   Quote,
   ChevronRight,
   FileText,
+  Search,
+  X,
+  Plus,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -36,7 +37,7 @@ export function CaseStudiesView() {
   const [aiLoading, setAiLoading] = useState(false)
   const { toast } = useToast()
 
-  const [newCS, setNewCS] = useState({ title: '', subtitle: '' })
+  const [newCS, setNewCS] = useState({ title: '' })
 
   useEffect(() => {
     fetch('/api/case-studies')
@@ -55,12 +56,7 @@ export function CaseStudiesView() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'generate-case-study',
-          context: {
-            title: newCS.title,
-            description: '',
-            category: 'Branding',
-            tags: '',
-          },
+          context: { title: newCS.title, description: '', category: 'Branding', tags: '' },
         }),
       })
       const data = await res.json()
@@ -79,12 +75,12 @@ export function CaseStudiesView() {
         }),
       })
       setShowNewDialog(false)
-      setNewCS({ title: '', subtitle: '' })
+      setNewCS({ title: '' })
       const updated = await fetch('/api/case-studies').then((r) => r.json())
       setCaseStudies(updated)
-      toast({ title: 'Case Study Generated', description: 'AI created a draft based on your title.' })
+      toast({ title: 'Draft Generated', description: 'AI created a case study draft.' })
     } catch {
-      toast({ title: 'AI Error', description: 'Failed to generate case study', variant: 'destructive' })
+      toast({ title: 'AI Error', description: 'Failed to generate', variant: 'destructive' })
     } finally {
       setAiLoading(false)
     }
@@ -97,131 +93,104 @@ export function CaseStudiesView() {
   )
 
   if (loading) {
-    return (
-      <div className="space-y-4">
-        {[...Array(3)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardContent className="p-6">
-              <div className="h-5 bg-muted rounded w-1/2 mb-3" />
-              <div className="h-3 bg-muted rounded w-3/4 mb-2" />
-              <div className="h-3 bg-muted rounded w-1/3" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    )
+    return <div className="space-y-3">{[...Array(3)].map((_, i) => <div key={i} className="h-16 bg-muted/30 rounded-lg animate-pulse" />)}</div>
   }
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Case Studies</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            In-depth looks at your best work and the results you delivered
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">Case Studies</h1>
+          <p className="text-[13px] text-muted-foreground mt-0.5">
+            {caseStudies.length} case stud{caseStudies.length !== 1 ? 'ies' : 'y'}
           </p>
         </div>
         <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/25">
-              <Sparkles className="w-4 h-4 mr-2" />
-              AI Generate
+            <Button size="sm" className="h-8 text-[13px]">
+              <Sparkles className="w-3.5 h-3.5 mr-1.5" /> AI Generate
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>AI Case Study Generator</DialogTitle>
+              <DialogTitle className="text-base">Generate Case Study</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 pt-2">
-              <p className="text-sm text-muted-foreground">
-                Enter a project title and AI will generate a complete case study draft with challenge, solution, results, and process steps.
+            <div className="space-y-4 pt-1">
+              <p className="text-[13px] text-muted-foreground leading-relaxed">
+                Enter a project title and AI will draft a complete case study with challenge, solution, results, and process steps.
               </p>
-              <div className="space-y-2">
-                <Label>Project / Case Study Title</Label>
+              <div className="space-y-1.5">
+                <Label className="text-[13px]">Title</Label>
                 <Input
-                  placeholder="e.g., How We Rebranded Lumina for 180% Growth"
+                  placeholder="e.g., How We Rebranded Lumina"
+                  className="h-9 text-[13px]"
                   value={newCS.title}
-                  onChange={(e) => setNewCS((p) => ({ ...p, title: e.target.value }))}
+                  onChange={(e) => setNewCS({ title: e.target.value })}
                 />
               </div>
               <Button
                 onClick={handleAIGenerate}
                 disabled={!newCS.title || aiLoading}
-                className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600"
+                className="w-full h-9 text-[13px]"
+                size="sm"
               >
-                {aiLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Sparkles className="w-4 h-4 mr-2" />}
-                Generate Case Study
+                {aiLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Sparkles className="w-3.5 h-3.5 mr-1.5" />}
+                Generate
               </Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+      {/* Filter */}
+      <div className="relative max-w-xs">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
         <Input
-          placeholder="Search case studies..."
-          className="pl-9"
+          placeholder="Filter case studies..."
+          className="h-8 pl-8 text-[13px] bg-muted/30 border-transparent focus:border-border"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+        {search && (
+          <button className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground" onClick={() => setSearch('')}>
+            <X className="w-3 h-3" />
+          </button>
+        )}
       </div>
 
-      {/* Case Study List */}
+      {/* List */}
       <AnimatePresence mode="wait">
         {filtered.length === 0 ? (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16">
-            <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-lg font-medium text-muted-foreground">No case studies yet</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Use AI to generate a draft or create one from your portfolio
-            </p>
+            <FileText className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
+            <p className="text-[13px] text-muted-foreground">No case studies yet</p>
           </motion.div>
         ) : (
-          <div className="space-y-4">
+          <div className="border border-border rounded-lg overflow-hidden">
             {filtered.map((cs, i) => (
               <motion.div
                 key={cs.id}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3, delay: i * 0.05 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.15, delay: i * 0.02 }}
+                className="flex items-center gap-3 px-4 py-3 border-b border-border last:border-0 hover:bg-accent/50 transition-colors cursor-pointer group"
+                onClick={() => setView('case-study-detail', cs.id)}
               >
-                <Card
-                  className="group hover:shadow-md transition-all duration-300 border-border/50 cursor-pointer"
-                  onClick={() => setView('case-study-detail', cs.id)}
+                <FileText className="w-4 h-4 text-muted-foreground/40 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-medium group-hover:text-primary transition-colors truncate">{cs.title}</p>
+                  {cs.subtitle && <p className="text-[12px] text-muted-foreground truncate mt-px">{cs.subtitle}</p>}
+                </div>
+                <Badge
+                  variant="secondary"
+                  className={`text-[10px] px-1.5 py-0 h-5 border-0 flex-shrink-0 ${
+                    cs.status === 'published' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'
+                  }`}
                 >
-                  <CardContent className="p-6">
-                    <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge variant={cs.status === 'published' ? 'default' : 'secondary'} className="text-[10px]">
-                            {cs.status}
-                          </Badge>
-                          {cs.project?.title && (
-                            <Badge variant="outline" className="text-[10px]">
-                              {cs.project.title}
-                            </Badge>
-                          )}
-                        </div>
-                        <h3 className="text-base font-semibold group-hover:text-amber-500 transition-colors line-clamp-1">
-                          {cs.title}
-                        </h3>
-                        {cs.subtitle && (
-                          <p className="text-sm text-muted-foreground mt-0.5 line-clamp-1">{cs.subtitle}</p>
-                        )}
-                        {cs.challenge && (
-                          <p className="text-xs text-muted-foreground mt-2 line-clamp-2 leading-relaxed">
-                            {cs.challenge.substring(0, 150)}...
-                          </p>
-                        )}
-                      </div>
-                      <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0 mt-1" />
-                    </div>
-                  </CardContent>
-                </Card>
+                  {cs.status}
+                </Badge>
+                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-muted-foreground transition-colors flex-shrink-0" />
               </motion.div>
             ))}
           </div>
@@ -243,7 +212,7 @@ export function CaseStudyDetailView() {
     fetch('/api/case-studies')
       .then((r) => r.json())
       .then((data) => setCaseStudy(data.find((cs: any) => cs.id === selectedId)))
-      .catch(() => toast({ title: 'Error', description: 'Failed to load case study', variant: 'destructive' }))
+      .catch(() => toast({ title: 'Error', description: 'Failed to load', variant: 'destructive' }))
       .finally(() => setLoading(false))
   }, [selectedId])
 
@@ -254,44 +223,27 @@ export function CaseStudyDetailView() {
       const res = await fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'improve-case-study',
-          context: caseStudy[section],
-        }),
+        body: JSON.stringify({ action: 'improve-case-study', context: caseStudy[section] }),
       })
       const data = await res.json()
       setCaseStudy((prev: any) => ({ ...prev, [section]: data.content }))
-      toast({ title: 'Improved', description: `AI enhanced the ${section} section.` })
+      toast({ title: 'Improved', description: 'Section enhanced.' })
     } catch {
-      toast({ title: 'AI Error', description: 'Failed to improve text', variant: 'destructive' })
+      toast({ title: 'AI Error', variant: 'destructive' })
     } finally {
       setAiLoading(false)
     }
   }
 
   if (loading) {
-    return (
-      <div className="space-y-4">
-        {[...Array(5)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardContent className="p-6">
-              <div className="h-5 bg-muted rounded w-1/3 mb-3" />
-              <div className="h-4 bg-muted rounded w-full mb-2" />
-              <div className="h-4 bg-muted rounded w-2/3" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    )
+    return <div className="space-y-4">{[...Array(4)].map((_, i) => <div key={i} className="h-24 bg-muted/30 rounded-lg animate-pulse" />)}</div>
   }
 
   if (!caseStudy) {
     return (
       <div className="text-center py-16">
-        <p className="text-muted-foreground">Case study not found</p>
-        <Button variant="ghost" className="mt-4" onClick={() => setView('case-studies')}>
-          Back to Case Studies
-        </Button>
+        <p className="text-[13px] text-muted-foreground">Not found</p>
+        <Button variant="ghost" size="sm" className="mt-3 h-7 text-[12px]" onClick={() => setView('case-studies')}>Back</Button>
       </div>
     )
   }
@@ -299,137 +251,145 @@ export function CaseStudyDetailView() {
   const process = JSON.parse(caseStudy.process || '[]')
 
   return (
-    <div className="space-y-6 max-w-4xl">
-      <Button variant="ghost" size="sm" className="mb-2" onClick={() => setView('case-studies')}>
-        <ArrowLeft className="w-4 h-4 mr-2" /> Back
+    <div className="space-y-6 max-w-3xl">
+      <Button variant="ghost" size="sm" className="h-7 text-[12px] -ml-2 text-muted-foreground hover:text-foreground" onClick={() => setView('case-studies')}>
+        <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Case Studies
       </Button>
 
-      {/* Header */}
+      {/* Title Block */}
       <div>
-        <div className="flex items-center gap-2 mb-3">
-          <Badge variant={caseStudy.status === 'published' ? 'default' : 'secondary'} className="text-xs">
+        <div className="flex items-center gap-2 mb-2">
+          <Badge
+            variant="secondary"
+            className={`text-[10px] px-1.5 py-0 h-5 border-0 ${
+              caseStudy.status === 'published' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'
+            }`}
+          >
             {caseStudy.status}
           </Badge>
           {caseStudy.project?.title && (
-            <Badge variant="outline" className="text-xs">{caseStudy.project.title}</Badge>
+            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 bg-muted/50 text-muted-foreground border-0">
+              {caseStudy.project.title}
+            </Badge>
           )}
         </div>
-        <h1 className="text-3xl font-bold tracking-tight">{caseStudy.title}</h1>
+        <h1 className="text-xl font-semibold tracking-tight leading-tight">{caseStudy.title}</h1>
         {caseStudy.subtitle && (
-          <p className="text-lg text-muted-foreground mt-2">{caseStudy.subtitle}</p>
+          <p className="text-[14px] text-muted-foreground mt-1.5 leading-relaxed">{caseStudy.subtitle}</p>
         )}
       </div>
 
-      <Separator />
+      <Separator className="opacity-50" />
 
-      {/* Challenge */}
+      {/* Sections */}
       {caseStudy.challenge && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <Card className="border-l-4 border-l-rose-500 border-border/50">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <Target className="w-4 h-4 text-rose-500" /> The Challenge
-                </span>
-                <Button variant="ghost" size="sm" className="text-xs text-amber-500 hover:text-amber-600" onClick={() => handleAIImprove('challenge')} disabled={aiLoading}>
-                  {aiLoading ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Sparkles className="w-3 h-3 mr-1" />} AI Improve
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm leading-relaxed whitespace-pre-line">{caseStudy.challenge}</p>
-            </CardContent>
-          </Card>
-        </motion.div>
+        <SectionBlock
+          icon={<Target className="w-4 h-4 text-rose-400" />}
+          title="Challenge"
+          content={caseStudy.challenge}
+          aiLoading={aiLoading}
+          onAIImprove={() => handleAIImprove('challenge')}
+          delay={0.05}
+        />
       )}
 
-      {/* Solution */}
       {caseStudy.solution && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-          <Card className="border-l-4 border-l-emerald-500 border-border/50">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <Lightbulb className="w-4 h-4 text-emerald-500" /> The Solution
-                </span>
-                <Button variant="ghost" size="sm" className="text-xs text-amber-500 hover:text-amber-600" onClick={() => handleAIImprove('solution')} disabled={aiLoading}>
-                  {aiLoading ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Sparkles className="w-3 h-3 mr-1" />} AI Improve
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm leading-relaxed whitespace-pre-line">{caseStudy.solution}</p>
-            </CardContent>
-          </Card>
-        </motion.div>
+        <SectionBlock
+          icon={<Lightbulb className="w-4 h-4 text-amber-400" />}
+          title="Solution"
+          content={caseStudy.solution}
+          aiLoading={aiLoading}
+          onAIImprove={() => handleAIImprove('solution')}
+          delay={0.1}
+        />
       )}
 
-      {/* Results */}
       {caseStudy.results && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-          <Card className="border-l-4 border-l-amber-500 border-border/50">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-amber-500" /> The Results
-                </span>
-                <Button variant="ghost" size="sm" className="text-xs text-amber-500 hover:text-amber-600" onClick={() => handleAIImprove('results')} disabled={aiLoading}>
-                  {aiLoading ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Sparkles className="w-3 h-3 mr-1" />} AI Improve
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm leading-relaxed whitespace-pre-line">{caseStudy.results}</p>
-            </CardContent>
-          </Card>
-        </motion.div>
+        <SectionBlock
+          icon={<TrendingUp className="w-4 h-4 text-emerald-400" />}
+          title="Results"
+          content={caseStudy.results}
+          aiLoading={aiLoading}
+          onAIImprove={() => handleAIImprove('results')}
+          delay={0.15}
+        />
       )}
 
       {/* Process */}
       {process.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-          <Card className="border-border/50">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-violet-500" /> Process
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {process.map((step: any, i: number) => (
-                  <div key={i} className="flex gap-4">
-                    <div className="flex flex-col items-center">
-                      <div className="w-8 h-8 rounded-full bg-violet-500/10 text-violet-500 flex items-center justify-center text-xs font-bold flex-shrink-0">
-                        {i + 1}
-                      </div>
-                      {i < process.length - 1 && <div className="w-px h-full bg-border mt-2" />}
-                    </div>
-                    <div className="pb-4">
-                      <p className="text-sm font-semibold">{step.phase}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{step.detail}</p>
-                    </div>
-                  </div>
-                ))}
+        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+          <div className="flex items-center gap-2 mb-3">
+            <BookOpen className="w-3.5 h-3.5 text-primary/60" />
+            <h2 className="text-[13px] font-medium text-muted-foreground uppercase tracking-wider">Process</h2>
+          </div>
+          <div className="border border-border rounded-lg overflow-hidden">
+            {process.map((step: any, i: number) => (
+              <div key={i} className="flex items-start gap-3 px-4 py-3 border-b border-border last:border-0">
+                <span className="text-[11px] font-mono text-muted-foreground/50 mt-px w-4 text-right flex-shrink-0">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <div>
+                  <p className="text-[13px] font-medium">{step.phase}</p>
+                  <p className="text-[12px] text-muted-foreground mt-px">{step.detail}</p>
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            ))}
+          </div>
         </motion.div>
       )}
 
       {/* Testimonial */}
       {caseStudy.testimonial && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
-          <Card className="bg-gradient-to-br from-muted/50 to-muted border-border/50">
-            <CardContent className="p-6">
-              <Quote className="w-8 h-8 text-amber-500/30 mb-3" />
-              <p className="text-sm italic leading-relaxed">&ldquo;{caseStudy.testimonial}&rdquo;</p>
-              {caseStudy.testimonialBy && (
-                <p className="text-xs font-medium text-muted-foreground mt-3">— {caseStudy.testimonialBy}</p>
-              )}
-            </CardContent>
-          </Card>
+        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+          <div className="border border-border rounded-lg p-4 bg-muted/20">
+            <Quote className="w-4 h-4 text-muted-foreground/20 mb-2" />
+            <p className="text-[13px] leading-relaxed italic text-muted-foreground">
+              &ldquo;{caseStudy.testimonial}&rdquo;
+            </p>
+            {caseStudy.testimonialBy && (
+              <p className="text-[12px] font-medium text-muted-foreground mt-3">&mdash; {caseStudy.testimonialBy}</p>
+            )}
+          </div>
         </motion.div>
       )}
     </div>
+  )
+}
+
+function SectionBlock({
+  icon,
+  title,
+  content,
+  aiLoading,
+  onAIImprove,
+  delay,
+}: {
+  icon: React.ReactNode
+  title: string
+  content: string
+  aiLoading: boolean
+  onAIImprove: () => void
+  delay: number
+}) {
+  return (
+    <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }}>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          {icon}
+          <h2 className="text-[13px] font-medium text-muted-foreground uppercase tracking-wider">{title}</h2>
+        </div>
+        <button
+          className="text-[11px] text-primary/60 hover:text-primary font-medium flex items-center gap-1 transition-colors"
+          onClick={onAIImprove}
+          disabled={aiLoading}
+        >
+          {aiLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+          Improve
+        </button>
+      </div>
+      <div className="border border-border rounded-lg p-4">
+        <p className="text-[13px] leading-relaxed whitespace-pre-line">{content}</p>
+      </div>
+    </motion.div>
   )
 }

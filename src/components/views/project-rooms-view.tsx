@@ -8,15 +8,15 @@ import {
   Send,
   Paperclip,
   CheckCircle2,
-  Clock,
-  Circle,
   Loader2,
   MessageSquare,
   Users,
   Package,
   Search,
+  Circle,
+  X,
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -28,20 +28,12 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useToast } from '@/hooks/use-toast'
 
-const phaseColors: Record<string, string> = {
-  discovery: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-  design: 'bg-violet-500/10 text-violet-600 border-violet-500/20',
-  development: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
-  delivery: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
-  review: 'bg-rose-500/10 text-rose-600 border-rose-500/20',
-}
-
-const phaseIcons: Record<string, typeof Circle> = {
-  discovery: Circle,
-  design: Circle,
-  development: Circle,
-  delivery: CheckCircle2,
-  review: Circle,
+const phaseConfig: Record<string, { text: string; dot: string }> = {
+  discovery: { text: 'text-blue-400', dot: 'bg-blue-400' },
+  design: { text: 'text-violet-400', dot: 'bg-violet-400' },
+  development: { text: 'text-amber-400', dot: 'bg-amber-400' },
+  delivery: { text: 'text-emerald-400', dot: 'bg-emerald-400' },
+  review: { text: 'text-rose-400', dot: 'bg-rose-400' },
 }
 
 export function ProjectRoomsView() {
@@ -52,18 +44,13 @@ export function ProjectRoomsView() {
   const [showNewDialog, setShowNewDialog] = useState(false)
   const { toast } = useToast()
 
-  const [newRoom, setNewRoom] = useState({
-    name: '',
-    clientName: '',
-    clientEmail: '',
-    description: '',
-  })
+  const [newRoom, setNewRoom] = useState({ name: '', clientName: '', clientEmail: '', description: '' })
 
   useEffect(() => {
     fetch('/api/client-rooms')
       .then((r) => r.json())
       .then((data) => setRooms(data))
-      .catch(() => toast({ title: 'Error', description: 'Failed to load project rooms', variant: 'destructive' }))
+      .catch(() => toast({ title: 'Error', description: 'Failed to load rooms', variant: 'destructive' }))
       .finally(() => setLoading(false))
   }, [])
 
@@ -78,9 +65,9 @@ export function ProjectRoomsView() {
       setRooms((prev) => [room, ...prev])
       setShowNewDialog(false)
       setNewRoom({ name: '', clientName: '', clientEmail: '', description: '' })
-      toast({ title: 'Room Created', description: `"${room.name}" is ready for collaboration.` })
+      toast({ title: 'Room Created', description: `"${room.name}" ready.` })
     } catch {
-      toast({ title: 'Error', description: 'Failed to create room', variant: 'destructive' })
+      toast({ title: 'Error', variant: 'destructive' })
     }
   }
 
@@ -91,162 +78,108 @@ export function ProjectRoomsView() {
   )
 
   if (loading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {[...Array(3)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardContent className="p-6">
-              <div className="h-5 bg-muted rounded w-3/4 mb-3" />
-              <div className="h-3 bg-muted rounded w-1/2" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    )
+    return <div className="space-y-3">{[...Array(3)].map((_, i) => <div key={i} className="h-16 bg-muted/30 rounded-lg animate-pulse" />)}</div>
   }
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Client Rooms</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Collaborate with clients, share deliverables, and manage project progress
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">Client Rooms</h1>
+          <p className="text-[13px] text-muted-foreground mt-0.5">
+            {rooms.length} room{rooms.length !== 1 ? 's' : ''} · {rooms.filter((r) => r.status === 'active').length} active
           </p>
         </div>
         <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white shadow-lg shadow-rose-500/25">
-              <Plus className="w-4 h-4 mr-2" />
-              New Room
+            <Button size="sm" className="h-8 text-[13px]">
+              <Plus className="w-3.5 h-3.5 mr-1.5" /> New Room
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Create Project Room</DialogTitle>
+              <DialogTitle className="text-base">Create Room</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 pt-2">
-              <div className="space-y-2">
-                <Label>Project Name</Label>
-                <Input
-                  placeholder="e.g., Solace Wellness Rebrand"
-                  value={newRoom.name}
-                  onChange={(e) => setNewRoom((p) => ({ ...p, name: e.target.value }))}
-                />
+            <div className="space-y-4 pt-1">
+              <div className="space-y-1.5">
+                <Label className="text-[13px]">Project Name</Label>
+                <Input placeholder="e.g., Solace Rebrand" className="h-9 text-[13px]" value={newRoom.name} onChange={(e) => setNewRoom((p) => ({ ...p, name: e.target.value }))} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Client Name</Label>
-                  <Input
-                    placeholder="e.g., Solace Wellness"
-                    value={newRoom.clientName}
-                    onChange={(e) => setNewRoom((p) => ({ ...p, clientName: e.target.value }))}
-                  />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-[13px]">Client</Label>
+                  <Input placeholder="Client name" className="h-9 text-[13px]" value={newRoom.clientName} onChange={(e) => setNewRoom((p) => ({ ...p, clientName: e.target.value }))} />
                 </div>
-                <div className="space-y-2">
-                  <Label>Client Email</Label>
-                  <Input
-                    placeholder="email@client.com"
-                    value={newRoom.clientEmail}
-                    onChange={(e) => setNewRoom((p) => ({ ...p, clientEmail: e.target.value }))}
-                  />
+                <div className="space-y-1.5">
+                  <Label className="text-[13px]">Email</Label>
+                  <Input placeholder="email@" className="h-9 text-[13px]" value={newRoom.clientEmail} onChange={(e) => setNewRoom((p) => ({ ...p, clientEmail: e.target.value }))} />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>Description</Label>
-                <Textarea
-                  placeholder="Brief project description..."
-                  value={newRoom.description}
-                  onChange={(e) => setNewRoom((p) => ({ ...p, description: e.target.value }))}
-                  rows={3}
-                />
+              <div className="space-y-1.5">
+                <Label className="text-[13px]">Description</Label>
+                <Textarea placeholder="Brief description..." className="text-[13px] min-h-[60px]" value={newRoom.description} onChange={(e) => setNewRoom((p) => ({ ...p, description: e.target.value }))} />
               </div>
-              <Button
-                onClick={handleCreate}
-                disabled={!newRoom.name}
-                className="w-full bg-gradient-to-r from-rose-500 to-pink-500 text-white hover:from-rose-600 hover:to-pink-600"
-              >
-                Create Room
-              </Button>
+              <Button onClick={handleCreate} disabled={!newRoom.name} className="w-full h-9 text-[13px]" size="sm">Create Room</Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          placeholder="Search rooms..."
-          className="pl-9"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      {/* Filter */}
+      <div className="relative max-w-xs">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
+        <Input placeholder="Filter rooms..." className="h-8 pl-8 text-[13px] bg-muted/30 border-transparent focus:border-border" value={search} onChange={(e) => setSearch(e.target.value)} />
+        {search && (
+          <button className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground" onClick={() => setSearch('')}>
+            <X className="w-3 h-3" />
+          </button>
+        )}
       </div>
 
-      {/* Room Grid */}
+      {/* Room List */}
       <AnimatePresence mode="wait">
         {filtered.length === 0 ? (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16">
-            <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-lg font-medium text-muted-foreground">No project rooms yet</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Create a room to start collaborating with clients
-            </p>
+            <Users className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
+            <p className="text-[13px] text-muted-foreground">No rooms yet</p>
           </motion.div>
         ) : (
-          <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filtered.map((room, i) => (
-              <motion.div
-                key={room.id}
-                layout
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.3, delay: i * 0.05 }}
-              >
-                <Card
-                  className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-border/50 h-full"
+          <div className="border border-border rounded-lg overflow-hidden">
+            {filtered.map((room, i) => {
+              const phase = phaseConfig[room.phase] || phaseConfig.discovery
+              return (
+                <motion.div
+                  key={room.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.15, delay: i * 0.02 }}
+                  className="flex items-center gap-3 px-4 py-3 border-b border-border last:border-0 hover:bg-accent/50 transition-colors cursor-pointer group"
                   onClick={() => setView('project-room-detail', room.id)}
                 >
-                  <CardContent className="p-5 flex flex-col h-full">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className={`text-[10px] ${phaseColors[room.phase] || ''} capitalize`}>
-                          {room.phase}
-                        </Badge>
-                        {room.status === 'active' && (
-                          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                        )}
-                      </div>
+                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: phase.dot.replace('bg-', '') }} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-medium group-hover:text-primary transition-colors truncate">{room.name}</p>
+                    <div className="flex items-center gap-2 mt-px">
+                      <span className="text-[11px] text-muted-foreground">{room.clientName}</span>
+                      <span className="text-[11px] text-muted-foreground/30">·</span>
+                      <span className={`text-[11px] capitalize ${phase.text}`}>{room.phase}</span>
                     </div>
-                    <h3 className="font-semibold text-sm group-hover:text-amber-500 transition-colors line-clamp-1">
-                      {room.name}
-                    </h3>
-                    <p className="text-xs text-muted-foreground mt-1">{room.clientName}</p>
-                    <p className="text-xs text-muted-foreground mt-2 line-clamp-2 flex-1">
-                      {room.description}
-                    </p>
-                    <Separator className="my-3" />
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <div className="flex items-center gap-3">
-                        <span className="flex items-center gap-1">
-                          <MessageSquare className="w-3 h-3" />
-                          {room.messages?.length || 0}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Package className="w-3 h-3" />
-                          {room.deliverables?.length || 0}
-                        </span>
-                      </div>
-                      <Clock className="w-3 h-3" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </motion.div>
+                  </div>
+                  <div className="flex items-center gap-3 text-[11px] text-muted-foreground/50 flex-shrink-0">
+                    <span className="flex items-center gap-1">
+                      <MessageSquare className="w-3 h-3" />
+                      {room.messages?.length || 0}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Package className="w-3 h-3" />
+                      {room.deliverables?.length || 0}
+                    </span>
+                  </div>
+                </motion.div>
+              )
+            })}
+          </div>
         )}
       </AnimatePresence>
     </div>
@@ -267,12 +200,7 @@ export function ProjectRoomDetailView() {
     if (!selectedId) return
     fetch('/api/client-rooms')
       .then((r) => r.json())
-      .then((data) => {
-        const found = data.find((r: any) => r.id === selectedId)
-        if (found) {
-          setRoom(found)
-        }
-      })
+      .then((data) => setRoom(data.find((r: any) => r.id === selectedId)))
       .finally(() => setLoading(false))
   }, [selectedId])
 
@@ -289,120 +217,95 @@ export function ProjectRoomDetailView() {
       const res = await fetch('/api/client-rooms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'message',
-          roomId: selectedId,
-          content: message,
-          sender: 'user',
-        }),
+        body: JSON.stringify({ action: 'message', roomId: selectedId, content: message, sender: 'user' }),
       })
-
       if (res.ok) {
         const newMsg = { id: Date.now().toString(), content: message, sender: 'user', type: 'text', createdAt: new Date().toISOString() }
-        setRoom((prev: any) => ({
-          ...prev,
-          messages: [...(prev.messages || []), newMsg],
-        }))
+        setRoom((prev: any) => ({ ...prev, messages: [...(prev.messages || []), newMsg] }))
         setMessage('')
       }
     } catch {
-      toast({ title: 'Error', description: 'Failed to send message', variant: 'destructive' })
+      toast({ title: 'Error', variant: 'destructive' })
     } finally {
       setSending(false)
     }
   }
 
   if (loading) {
-    return (
-      <div className="space-y-4">
-        {[...Array(4)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardContent className="p-6">
-              <div className="h-4 bg-muted rounded w-1/3" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    )
+    return <div className="space-y-3">{[...Array(4)].map((_, i) => <div key={i} className="h-16 bg-muted/30 rounded-lg animate-pulse" />)}</div>
   }
 
   if (!room) {
     return (
       <div className="text-center py-16">
-        <p className="text-muted-foreground">Room not found</p>
-        <Button variant="ghost" className="mt-4" onClick={() => setView('project-rooms')}>
-          Back to Rooms
-        </Button>
+        <p className="text-[13px] text-muted-foreground">Room not found</p>
+        <Button variant="ghost" size="sm" className="mt-3 h-7 text-[12px]" onClick={() => setView('project-rooms')}>Back</Button>
       </div>
     )
   }
 
+  const phase = phaseConfig[room.phase] || phaseConfig.discovery
+
   return (
-    <div className="space-y-4 h-[calc(100vh-8rem)] flex flex-col">
+    <div className="space-y-3 h-[calc(100vh-7rem)] flex flex-col">
       {/* Header */}
-      <div className="flex items-center gap-4 flex-shrink-0">
-        <Button variant="ghost" size="sm" onClick={() => setView('project-rooms')}>
-          <ArrowLeft className="w-4 h-4" />
+      <div className="flex items-center gap-3 flex-shrink-0">
+        <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground" onClick={() => setView('project-rooms')}>
+          <ArrowLeft className="w-3.5 h-3.5" />
         </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold">{room.name}</h2>
-            <Badge variant="outline" className={`text-[10px] ${phaseColors[room.phase] || ''} capitalize`}>
-              {room.phase}
-            </Badge>
-          </div>
-          <p className="text-xs text-muted-foreground">{room.clientName} · {room.clientEmail}</p>
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <div className={`w-1.5 h-1.5 rounded-full ${phase.dot}`} />
+          <h2 className="text-[14px] font-medium truncate">{room.name}</h2>
+          <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 h-5 border-0 ${phase.text} bg-current/10`}>
+            {room.phase}
+          </Badge>
         </div>
+        <span className="text-[11px] text-muted-foreground">{room.clientName}</span>
       </div>
 
       {/* Tab Switcher */}
-      <div className="flex gap-2 flex-shrink-0">
-        <Button
-          variant={activeTab === 'messages' ? 'secondary' : 'ghost'}
-          size="sm"
+      <div className="flex gap-1 flex-shrink-0 border-b border-border">
+        <button
           onClick={() => setActiveTab('messages')}
-          className="text-xs"
+          className={`px-3 py-2 text-[12px] font-medium transition-colors border-b-2 -mb-px ${
+            activeTab === 'messages'
+              ? 'border-primary text-foreground'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+          }`}
         >
-          <MessageSquare className="w-3.5 h-3.5 mr-1.5" />
-          Messages
-        </Button>
-        <Button
-          variant={activeTab === 'deliverables' ? 'secondary' : 'ghost'}
-          size="sm"
+          Messages {room.messages?.length ? `(${room.messages.length})` : ''}
+        </button>
+        <button
           onClick={() => setActiveTab('deliverables')}
-          className="text-xs"
+          className={`px-3 py-2 text-[12px] font-medium transition-colors border-b-2 -mb-px ${
+            activeTab === 'deliverables'
+              ? 'border-primary text-foreground'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+          }`}
         >
-          <Package className="w-3.5 h-3.5 mr-1.5" />
-          Deliverables ({room.deliverables?.length || 0})
-        </Button>
+          Deliverables {room.deliverables?.length ? `(${room.deliverables.length})` : ''}
+        </button>
       </div>
 
       {activeTab === 'messages' ? (
-        <Card className="flex-1 flex flex-col overflow-hidden border-border/50 min-h-0">
-          {/* Messages */}
+        <div className="flex-1 flex flex-col min-h-0 border border-border rounded-lg overflow-hidden">
           <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-            <div className="space-y-4">
+            <div className="space-y-3 max-w-2xl mx-auto">
               {(!room.messages || room.messages.length === 0) && (
-                <div className="text-center py-8">
-                  <MessageSquare className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground">No messages yet</p>
-                  <p className="text-xs text-muted-foreground">Start the conversation with your client</p>
+                <div className="text-center py-12">
+                  <MessageSquare className="w-6 h-6 text-muted-foreground/20 mx-auto mb-2" />
+                  <p className="text-[12px] text-muted-foreground">No messages yet</p>
                 </div>
               )}
               {[...(room.messages || [])].reverse().map((msg: any) => (
-                <div
-                  key={msg.id}
-                  className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`max-w-[70%] rounded-2xl px-4 py-2.5 ${
-                      msg.sender === 'user'
-                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white'
-                        : 'bg-muted'
-                    }`}
-                  >
-                    <p className="text-sm leading-relaxed">{msg.content}</p>
-                    <p className={`text-[10px] mt-1 ${msg.sender === 'user' ? 'text-white/70' : 'text-muted-foreground'}`}>
+                <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[480px] rounded-lg px-3 py-2 ${
+                    msg.sender === 'user'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted/50'
+                  }`}>
+                    <p className="text-[13px] leading-relaxed">{msg.content}</p>
+                    <p className={`text-[10px] mt-1 ${msg.sender === 'user' ? 'text-primary-foreground/50' : 'text-muted-foreground/50'}`}>
                       {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
@@ -412,60 +315,58 @@ export function ProjectRoomDetailView() {
           </ScrollArea>
 
           {/* Input */}
-          <div className="p-3 border-t border-border">
-            <div className="flex gap-2">
-              <Button variant="ghost" size="sm" className="flex-shrink-0">
-                <Paperclip className="w-4 h-4" />
-              </Button>
+          <div className="px-3 py-2.5 border-t border-border bg-card flex-shrink-0">
+            <div className="flex gap-2 max-w-2xl mx-auto">
+              <button className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-accent transition-colors text-muted-foreground/50 hover:text-muted-foreground flex-shrink-0">
+                <Paperclip className="w-3.5 h-3.5" />
+              </button>
               <Input
                 placeholder="Type a message..."
+                className="h-8 text-[13px] bg-muted/30 border-transparent focus:border-border"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                className="flex-1"
               />
               <Button
-                size="sm"
+                size="icon"
+                className="h-8 w-8 flex-shrink-0"
                 onClick={handleSend}
                 disabled={!message.trim() || sending}
-                className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white flex-shrink-0"
               >
-                {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                {sending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
               </Button>
             </div>
           </div>
-        </Card>
+        </div>
       ) : (
-        <Card className="flex-1 overflow-auto border-border/50">
-          <CardContent className="p-4">
-            {(!room.deliverables || room.deliverables.length === 0) ? (
-              <div className="text-center py-8">
-                <Package className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-                <p className="text-sm text-muted-foreground">No deliverables yet</p>
-                <p className="text-xs text-muted-foreground">Add files and assets for your client to review</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {room.deliverables.map((d: any) => (
-                  <div key={d.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                    <div className="w-9 h-9 rounded-lg bg-background border flex items-center justify-center flex-shrink-0">
-                      <Package className="w-4 h-4 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{d.title}</p>
-                      <p className="text-xs text-muted-foreground capitalize">{d.type} · {d.status}</p>
-                    </div>
-                    {d.status === 'approved' ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                    ) : (
-                      <Badge variant="outline" className="text-[10px] capitalize">{d.status}</Badge>
-                    )}
+        <div className="flex-1 border border-border rounded-lg overflow-hidden">
+          {(!room.deliverables || room.deliverables.length === 0) ? (
+            <div className="text-center py-12">
+              <Package className="w-6 h-6 text-muted-foreground/20 mx-auto mb-2" />
+              <p className="text-[12px] text-muted-foreground">No deliverables yet</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-border">
+              {room.deliverables.map((d: any) => (
+                <div key={d.id} className="flex items-center gap-3 px-4 py-3 hover:bg-accent/30 transition-colors">
+                  <Package className="w-4 h-4 text-muted-foreground/40 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-medium truncate">{d.title}</p>
+                    <p className="text-[11px] text-muted-foreground capitalize">{d.type}</p>
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  <Badge
+                    variant="secondary"
+                    className={`text-[10px] px-1.5 py-0 h-5 border-0 flex-shrink-0 ${
+                      d.status === 'approved' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'
+                    }`}
+                  >
+                    {d.status}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
     </div>
   )

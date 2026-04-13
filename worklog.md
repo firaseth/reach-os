@@ -1,28 +1,27 @@
 ---
-Task ID: 1
+Task ID: 2
 Agent: Main Agent
-Task: Build Creative OS — Personal Creative Studio Platform
+Task: UI Overhaul — Professional Redesign inspired by Linear, Frame.io, Notion
 
 Work Log:
-- Initialized fullstack development environment (Next.js 16 + Tailwind CSS 4 + shadcn/ui)
-- Designed and created Prisma schema with 7 models: User, Project, CaseStudy, PitchDeck, ClientRoom, Message, Deliverable
-- Pushed schema to SQLite database
-- Created seed script with realistic sample data (6 projects, 2 case studies, 2 pitch decks, 3 client rooms)
-- Built Zustand store for client-side navigation state management
-- Created AI API route (/api/ai) with 6 AI-powered actions: improve-case-study, generate-pitch-problem, generate-pitch-solution, suggest-project-tags, write-project-description, generate-case-study
-- Created data API routes: /api/projects, /api/case-studies, /api/pitch-decks, /api/client-rooms
-- Built AppSidebar component with collapsible navigation, tooltips, and branded styling
-- Built DashboardView with stats widgets, featured projects grid, recent case studies, and active rooms
-- Built PortfolioView with project grid, search/filter, add project dialog with AI description writing
-- Built CaseStudiesView with AI generation, list view, and detailed case study view with AI improvement buttons
-- Built PitchDecksView with AI proposal generator, list view, and detailed proposal view
-- Built ProjectRoomsView with room grid, chat interface, and deliverables tab
-- Wired everything together in page.tsx with animated view transitions
-- Added custom scrollbar styling and selection colors
-- All lint checks pass
+- Researched top creative platforms: Linear, Frame.io, Pitch, Notion, Dribbble
+- Completely rewrote globals.css with dark-mode-default color system (near-black #0A0A0F with blue undertone)
+- Single muted accent color: desaturated indigo #5E6AD2
+- Surface hierarchy via background shade shifts (NOT shadows)
+- Redesigned sidebar to Linear-style: 232px collapsible to 52px, no dividers, keyboard shortcuts, minimal chrome
+- Redesigned dashboard: metric cards with h-[72px], table-style project list, clean info density
+- Redesigned portfolio: table-like list layout with header row, inline category pills, hover-reveal actions
+- Redesigned case studies: clean list with status pills (emerald/amber at 10% opacity), numbered process steps
+- Redesigned proposals: professional status badges, clean section layout with uppercase labels
+- Redesigned client rooms: Frame.io-style chat, tab underline navigation, phase dot indicators
+- Removed all gradient buttons → solid/ghost/outline pattern
+- All status badges now use pill shape with color at 10-15% opacity background
+- Typography: 11-13px for labels/meta, 13px for body, tight line heights
+- 5px custom scrollbar, subtle selection color
+- Animations: subtle opacity-only transitions (no bouncy effects)
 
 Stage Summary:
-- Creative OS is fully functional as a single-page app with 5 main sections
-- AI features are integrated for case study generation, proposal writing, project descriptions, and tag suggestions
-- Database is seeded with rich sample data
-- App compiles and serves successfully on localhost:3000
+- Complete visual overhaul from playful/gradient to professional/tool-grade
+- Dark mode as default identity (like Linear/Frame.io)
+- All lint checks pass, all API routes functional
+- App compiles in ~170ms

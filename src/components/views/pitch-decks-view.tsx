@@ -3,8 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useAppStore } from '@/lib/store'
 import {
-  Plus,
-  Search,
   Sparkles,
   Loader2,
   ArrowLeft,
@@ -18,8 +16,11 @@ import {
   Presentation,
   CheckCircle2,
   FileText,
+  Search,
+  X,
+  Circle,
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,11 +31,11 @@ import { Separator } from '@/components/ui/separator'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useToast } from '@/hooks/use-toast'
 
-const statusColors: Record<string, string> = {
-  draft: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
-  sent: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-  won: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
-  lost: 'bg-red-500/10 text-red-600 border-red-500/20',
+const statusConfig: Record<string, { bg: string; text: string }> = {
+  draft: { bg: 'bg-amber-500/10', text: 'text-amber-400' },
+  sent: { bg: 'bg-blue-500/10', text: 'text-blue-400' },
+  won: { bg: 'bg-emerald-500/10', text: 'text-emerald-400' },
+  lost: { bg: 'bg-rose-500/10', text: 'text-rose-400' },
 }
 
 export function PitchDecksView() {
@@ -49,7 +50,6 @@ export function PitchDecksView() {
   const [newPitch, setNewPitch] = useState({
     title: '',
     clientName: '',
-    subtitle: '',
     context: '',
     issues: '',
     industry: '',
@@ -59,7 +59,7 @@ export function PitchDecksView() {
     fetch('/api/pitch-decks')
       .then((r) => r.json())
       .then((data) => setPitchDecks(data))
-      .catch(() => toast({ title: 'Error', description: 'Failed to load proposals', variant: 'destructive' }))
+      .catch(() => toast({ title: 'Error', description: 'Failed to load', variant: 'destructive' }))
       .finally(() => setLoading(false))
   }, [])
 
@@ -73,12 +73,7 @@ export function PitchDecksView() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             action: 'generate-pitch-problem',
-            context: {
-              clientName: newPitch.clientName,
-              industry: newPitch.industry,
-              context: newPitch.context,
-              issues: newPitch.issues,
-            },
+            context: { clientName: newPitch.clientName, industry: newPitch.industry, context: newPitch.context, issues: newPitch.issues },
           }),
         }),
         fetch('/api/ai', {
@@ -86,11 +81,7 @@ export function PitchDecksView() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             action: 'generate-pitch-solution',
-            context: {
-              clientName: newPitch.clientName,
-              problem: newPitch.issues,
-              services: 'Branding, Design, Strategy',
-            },
+            context: { clientName: newPitch.clientName, problem: newPitch.issues, services: 'Branding, Design, Strategy' },
           }),
         }),
       ])
@@ -103,7 +94,7 @@ export function PitchDecksView() {
         body: JSON.stringify({
           title: newPitch.title,
           clientName: newPitch.clientName,
-          subtitle: newPitch.subtitle,
+          subtitle: '',
           problem: problemData.content,
           solution: solutionData.content,
           approach: '',
@@ -116,10 +107,10 @@ export function PitchDecksView() {
       const pitch = await res.json()
       setPitchDecks((prev) => [pitch, ...prev])
       setShowNewDialog(false)
-      setNewPitch({ title: '', clientName: '', subtitle: '', context: '', issues: '', industry: '' })
-      toast({ title: 'Proposal Generated', description: 'AI created a proposal draft for your client.' })
+      setNewPitch({ title: '', clientName: '', context: '', issues: '', industry: '' })
+      toast({ title: 'Draft Generated', description: 'AI created a proposal.' })
     } catch {
-      toast({ title: 'AI Error', description: 'Failed to generate proposal', variant: 'destructive' })
+      toast({ title: 'AI Error', variant: 'destructive' })
     } finally {
       setAiLoading(false)
     }
@@ -132,165 +123,103 @@ export function PitchDecksView() {
   )
 
   if (loading) {
-    return (
-      <div className="space-y-4">
-        {[...Array(3)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardContent className="p-6">
-              <div className="h-5 bg-muted rounded w-1/2 mb-3" />
-              <div className="h-3 bg-muted rounded w-3/4" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    )
+    return <div className="space-y-3">{[...Array(3)].map((_, i) => <div key={i} className="h-16 bg-muted/30 rounded-lg animate-pulse" />)}</div>
   }
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Proposals</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Generate winning proposals from your past work and case studies
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">Proposals</h1>
+          <p className="text-[13px] text-muted-foreground mt-0.5">
+            {pitchDecks.length} proposal{pitchDecks.length !== 1 ? 's' : ''}
           </p>
         </div>
         <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white shadow-lg shadow-violet-500/25">
-              <Sparkles className="w-4 h-4 mr-2" />
-              AI Proposal
+            <Button size="sm" className="h-8 text-[13px]">
+              <Sparkles className="w-3.5 h-3.5 mr-1.5" /> AI Proposal
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
-              <DialogTitle>AI Proposal Generator</DialogTitle>
+              <DialogTitle className="text-base">Generate Proposal</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 pt-2">
-              <p className="text-sm text-muted-foreground">
-                Enter client details and AI will generate a compelling proposal draft with problem framing, solution approach, and recommended deliverables.
+            <div className="space-y-4 pt-1">
+              <p className="text-[13px] text-muted-foreground leading-relaxed">
+                Enter client details and AI will draft a complete proposal with problem framing, solution, and recommended approach.
               </p>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Client Name *</Label>
-                  <Input
-                    placeholder="e.g., Solace Wellness"
-                    value={newPitch.clientName}
-                    onChange={(e) => setNewPitch((p) => ({ ...p, clientName: e.target.value }))}
-                  />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-[13px]">Client Name *</Label>
+                  <Input placeholder="e.g., Solace Wellness" className="h-9 text-[13px]" value={newPitch.clientName} onChange={(e) => setNewPitch((p) => ({ ...p, clientName: e.target.value }))} />
                 </div>
-                <div className="space-y-2">
-                  <Label>Industry</Label>
-                  <Input
-                    placeholder="e.g., Health & Wellness"
-                    value={newPitch.industry}
-                    onChange={(e) => setNewPitch((p) => ({ ...p, industry: e.target.value }))}
-                  />
+                <div className="space-y-1.5">
+                  <Label className="text-[13px]">Industry</Label>
+                  <Input placeholder="e.g., Health & Wellness" className="h-9 text-[13px]" value={newPitch.industry} onChange={(e) => setNewPitch((p) => ({ ...p, industry: e.target.value }))} />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>Proposal Title *</Label>
-                <Input
-                  placeholder="e.g., Brand & Digital Transformation"
-                  value={newPitch.title}
-                  onChange={(e) => setNewPitch((p) => ({ ...p, title: e.target.value }))}
-                />
+              <div className="space-y-1.5">
+                <Label className="text-[13px]">Proposal Title *</Label>
+                <Input placeholder="e.g., Brand & Digital Transformation" className="h-9 text-[13px]" value={newPitch.title} onChange={(e) => setNewPitch((p) => ({ ...p, title: e.target.value }))} />
               </div>
-              <div className="space-y-2">
-                <Label>Brief Context</Label>
-                <Textarea
-                  placeholder="What do you know about this client's situation?"
-                  value={newPitch.context}
-                  onChange={(e) => setNewPitch((p) => ({ ...p, context: e.target.value }))}
-                  rows={3}
-                />
+              <div className="space-y-1.5">
+                <Label className="text-[13px]">Pain Points</Label>
+                <Textarea placeholder="What problems is the client facing?" className="text-[13px] min-h-[60px]" value={newPitch.issues} onChange={(e) => setNewPitch((p) => ({ ...p, issues: e.target.value }))} />
               </div>
-              <div className="space-y-2">
-                <Label>Known Issues / Pain Points</Label>
-                <Textarea
-                  placeholder="What problems is the client facing?"
-                  value={newPitch.issues}
-                  onChange={(e) => setNewPitch((p) => ({ ...p, issues: e.target.value }))}
-                  rows={3}
-                />
-              </div>
-              <Button
-                onClick={handleAIGenerate}
-                disabled={!newPitch.title || !newPitch.clientName || aiLoading}
-                className="w-full bg-gradient-to-r from-violet-500 to-purple-500 text-white hover:from-violet-600 hover:to-purple-600"
-              >
-                {aiLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Sparkles className="w-4 h-4 mr-2" />}
-                Generate Proposal
+              <Button onClick={handleAIGenerate} disabled={!newPitch.title || !newPitch.clientName || aiLoading} className="w-full h-9 text-[13px]" size="sm">
+                {aiLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Sparkles className="w-3.5 h-3.5 mr-1.5" />}
+                Generate
               </Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          placeholder="Search proposals..."
-          className="pl-9"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      {/* Filter */}
+      <div className="relative max-w-xs">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
+        <Input placeholder="Filter proposals..." className="h-8 pl-8 text-[13px] bg-muted/30 border-transparent focus:border-border" value={search} onChange={(e) => setSearch(e.target.value)} />
+        {search && (
+          <button className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground" onClick={() => setSearch('')}>
+            <X className="w-3 h-3" />
+          </button>
+        )}
       </div>
 
-      {/* Proposal List */}
+      {/* List */}
       <AnimatePresence mode="wait">
         {filtered.length === 0 ? (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16">
-            <Presentation className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-lg font-medium text-muted-foreground">No proposals yet</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Use AI to generate a proposal from your case studies
-            </p>
+            <Presentation className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
+            <p className="text-[13px] text-muted-foreground">No proposals yet</p>
           </motion.div>
         ) : (
-          <div className="space-y-4">
-            {filtered.map((pitch, i) => (
-              <motion.div
-                key={pitch.id}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3, delay: i * 0.05 }}
-              >
-                <Card
-                  className="group hover:shadow-md transition-all duration-300 border-border/50 cursor-pointer"
+          <div className="border border-border rounded-lg overflow-hidden">
+            {filtered.map((pitch, i) => {
+              const sc = statusConfig[pitch.status] || statusConfig.draft
+              return (
+                <motion.div
+                  key={pitch.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.15, delay: i * 0.02 }}
+                  className="flex items-center gap-3 px-4 py-3 border-b border-border last:border-0 hover:bg-accent/50 transition-colors cursor-pointer group"
                   onClick={() => setView('pitch-deck-detail', pitch.id)}
                 >
-                  <CardContent className="p-6">
-                    <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge variant="outline" className={`text-[10px] ${statusColors[pitch.status] || ''}`}>
-                            {pitch.status === 'won' && <CheckCircle2 className="w-3 h-3 mr-1" />}
-                            {pitch.status}
-                          </Badge>
-                          <Badge variant="outline" className="text-[10px]">{pitch.clientName}</Badge>
-                        </div>
-                        <h3 className="text-base font-semibold group-hover:text-violet-500 transition-colors line-clamp-1">
-                          {pitch.title}
-                        </h3>
-                        {pitch.subtitle && (
-                          <p className="text-sm text-muted-foreground mt-0.5 line-clamp-1">{pitch.subtitle}</p>
-                        )}
-                        {pitch.problem && (
-                          <p className="text-xs text-muted-foreground mt-2 line-clamp-2 leading-relaxed">
-                            {pitch.problem.substring(0, 180)}...
-                          </p>
-                        )}
-                      </div>
-                      <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0 mt-1" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+                  <Presentation className="w-4 h-4 text-muted-foreground/40 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-medium group-hover:text-primary transition-colors truncate">{pitch.title}</p>
+                    <p className="text-[12px] text-muted-foreground truncate mt-px">{pitch.clientName}</p>
+                  </div>
+                  <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 h-5 border-0 flex-shrink-0 ${sc.bg} ${sc.text}`}>
+                    {pitch.status}
+                  </Badge>
+                  <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-muted-foreground transition-colors flex-shrink-0" />
+                </motion.div>
+              )
+            })}
           </div>
         )}
       </AnimatePresence>
@@ -312,163 +241,135 @@ export function PitchDeckDetailView() {
   }, [selectedId])
 
   if (loading) {
-    return (
-      <div className="space-y-4">
-        {[...Array(5)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardContent className="p-6">
-              <div className="h-5 bg-muted rounded w-1/3 mb-3" />
-              <div className="h-4 bg-muted rounded w-full" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    )
+    return <div className="space-y-4">{[...Array(4)].map((_, i) => <div key={i} className="h-24 bg-muted/30 rounded-lg animate-pulse" />)}</div>
   }
 
   if (!pitch) {
     return (
       <div className="text-center py-16">
-        <p className="text-muted-foreground">Proposal not found</p>
-        <Button variant="ghost" className="mt-4" onClick={() => setView('pitch-decks')}>
-          Back to Proposals
-        </Button>
+        <p className="text-[13px] text-muted-foreground">Not found</p>
+        <Button variant="ghost" size="sm" className="mt-3 h-7 text-[12px]" onClick={() => setView('pitch-decks')}>Back</Button>
       </div>
     )
   }
 
   const deliverables = JSON.parse(pitch.deliverables || '[]')
+  const sc = statusConfig[pitch.status] || statusConfig.draft
 
   return (
-    <div className="space-y-6 max-w-4xl">
-      <Button variant="ghost" size="sm" className="mb-2" onClick={() => setView('pitch-decks')}>
-        <ArrowLeft className="w-4 h-4 mr-2" /> Back
+    <div className="space-y-6 max-w-3xl">
+      <Button variant="ghost" size="sm" className="h-7 text-[12px] -ml-2 text-muted-foreground hover:text-foreground" onClick={() => setView('pitch-decks')}>
+        <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Proposals
       </Button>
 
       {/* Header */}
-      <div>
-        <div className="flex items-center gap-2 mb-3">
-          <Badge variant="outline" className={`text-xs ${statusColors[pitch.status] || ''}`}>
-            {pitch.status}
-          </Badge>
-          <Badge variant="outline" className="text-xs">{pitch.clientName}</Badge>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 h-5 border-0 ${sc.bg} ${sc.text}`}>
+              {pitch.status}
+            </Badge>
+            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 bg-muted/50 text-muted-foreground border-0">
+              {pitch.clientName}
+            </Badge>
+          </div>
+          <h1 className="text-xl font-semibold tracking-tight leading-tight">{pitch.title}</h1>
+          {pitch.subtitle && <p className="text-[14px] text-muted-foreground mt-1">{pitch.subtitle}</p>}
         </div>
-        <h1 className="text-3xl font-bold tracking-tight">{pitch.title}</h1>
-        {pitch.subtitle && (
-          <p className="text-lg text-muted-foreground mt-2">{pitch.subtitle}</p>
-        )}
       </div>
 
-      <Separator />
+      <Separator className="opacity-50" />
 
       {/* Problem */}
       {pitch.problem && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <Card className="border-l-4 border-l-rose-500 border-border/50">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Target className="w-4 h-4 text-rose-500" /> The Problem
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm leading-relaxed whitespace-pre-line">{pitch.problem}</p>
-            </CardContent>
-          </Card>
+        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+          <div className="flex items-center gap-2 mb-2">
+            <Target className="w-3.5 h-3.5 text-rose-400" />
+            <h2 className="text-[13px] font-medium text-muted-foreground uppercase tracking-wider">Problem</h2>
+          </div>
+          <div className="border border-border rounded-lg p-4">
+            <p className="text-[13px] leading-relaxed whitespace-pre-line">{pitch.problem}</p>
+          </div>
         </motion.div>
       )}
 
       {/* Solution */}
       {pitch.solution && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-          <Card className="border-l-4 border-l-emerald-500 border-border/50">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Lightbulb className="w-4 h-4 text-emerald-500" /> Our Solution
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm leading-relaxed whitespace-pre-line">{pitch.solution}</p>
-            </CardContent>
-          </Card>
+        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          <div className="flex items-center gap-2 mb-2">
+            <Lightbulb className="w-3.5 h-3.5 text-amber-400" />
+            <h2 className="text-[13px] font-medium text-muted-foreground uppercase tracking-wider">Solution</h2>
+          </div>
+          <div className="border border-border rounded-lg p-4">
+            <p className="text-[13px] leading-relaxed whitespace-pre-line">{pitch.solution}</p>
+          </div>
         </motion.div>
       )}
 
       {/* Approach */}
       {pitch.approach && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-          <Card className="border-border/50">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2">
-                <ListChecks className="w-4 h-4 text-violet-500" /> Approach
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm leading-relaxed whitespace-pre-line">{pitch.approach}</p>
-            </CardContent>
-          </Card>
+        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+          <div className="flex items-center gap-2 mb-2">
+            <ListChecks className="w-3.5 h-3.5 text-primary/60" />
+            <h2 className="text-[13px] font-medium text-muted-foreground uppercase tracking-wider">Approach</h2>
+          </div>
+          <div className="border border-border rounded-lg p-4">
+            <p className="text-[13px] leading-relaxed whitespace-pre-line">{pitch.approach}</p>
+          </div>
         </motion.div>
       )}
 
-      {/* Meta Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Meta */}
+      <div className="grid grid-cols-2 gap-3">
         {pitch.timeline && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-            <Card className="border-border/50">
-              <CardContent className="p-5">
-                <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                  <Clock className="w-4 h-4" />
-                  <span className="text-xs font-medium uppercase tracking-wider">Timeline</span>
-                </div>
-                <p className="text-sm font-medium">{pitch.timeline}</p>
-              </CardContent>
-            </Card>
+          <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            <div className="flex items-center gap-2 mb-1.5">
+              <Clock className="w-3.5 h-3.5 text-muted-foreground/50" />
+              <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Timeline</span>
+            </div>
+            <div className="border border-border rounded-lg p-3">
+              <p className="text-[13px] font-medium">{pitch.timeline}</p>
+            </div>
           </motion.div>
         )}
         {pitch.investment && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
-            <Card className="border-border/50">
-              <CardContent className="p-5">
-                <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                  <DollarSign className="w-4 h-4" />
-                  <span className="text-xs font-medium uppercase tracking-wider">Investment</span>
-                </div>
-                <p className="text-sm font-medium">{pitch.investment}</p>
-              </CardContent>
-            </Card>
+          <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}>
+            <div className="flex items-center gap-2 mb-1.5">
+              <DollarSign className="w-3.5 h-3.5 text-muted-foreground/50" />
+              <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Investment</span>
+            </div>
+            <div className="border border-border rounded-lg p-3">
+              <p className="text-[13px] font-medium">{pitch.investment}</p>
+            </div>
           </motion.div>
         )}
       </div>
 
       {/* Deliverables */}
       {deliverables.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
-          <Card className="border-border/50">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <FileText className="w-4 h-4 text-amber-500" /> Deliverables
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {deliverables.map((d: string, i: number) => (
-                  <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                    <span className="text-sm">{d}</span>
-                  </div>
-                ))}
+        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+          <div className="flex items-center gap-2 mb-2">
+            <FileText className="w-3.5 h-3.5 text-muted-foreground/50" />
+            <h2 className="text-[13px] font-medium text-muted-foreground uppercase tracking-wider">Deliverables</h2>
+          </div>
+          <div className="border border-border rounded-lg overflow-hidden">
+            {deliverables.map((d: string, i: number) => (
+              <div key={i} className="flex items-center gap-2.5 px-4 py-2.5 border-b border-border last:border-0">
+                <CheckCircle2 className="w-3.5 h-3.5 text-muted-foreground/30 flex-shrink-0" />
+                <span className="text-[13px]">{d}</span>
               </div>
-            </CardContent>
-          </Card>
+            ))}
+          </div>
         </motion.div>
       )}
 
-      {/* Send Button */}
-      <div className="flex gap-3 pt-2">
-        <Button className="bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white">
-          <Send className="w-4 h-4 mr-2" /> Send to Client
+      {/* Actions */}
+      <div className="flex gap-2 pt-2">
+        <Button size="sm" className="h-8 text-[13px]">
+          <Send className="w-3.5 h-3.5 mr-1.5" /> Send to Client
         </Button>
-        <Button variant="outline">
-          <Presentation className="w-4 h-4 mr-2" /> Export as PDF
+        <Button variant="outline" size="sm" className="h-8 text-[13px]">
+          <Presentation className="w-3.5 h-3.5 mr-1.5" /> Export PDF
         </Button>
       </div>
     </div>

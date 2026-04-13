@@ -15,7 +15,6 @@ export default function Home() {
   const { currentView, sidebarOpen } = useAppStore()
 
   useEffect(() => {
-    // Scroll to top on view change
     window.scrollTo(0, 0)
   }, [currentView])
 
@@ -47,18 +46,18 @@ export default function Home() {
       <AppSidebar />
       <main
         className={cn(
-          'transition-all duration-300',
-          sidebarOpen ? 'ml-64' : 'ml-[68px]'
+          'transition-all duration-200 ease-out',
+          sidebarOpen ? 'ml-[232px]' : 'ml-[52px]'
         )}
       >
-        <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+        <div className="p-6 lg:p-8 max-w-5xl mx-auto">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentView}
-              initial={{ opacity: 0, x: 10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              transition={{ duration: 0.2 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
             >
               {renderView()}
             </motion.div>

@@ -7,14 +7,12 @@ import {
   FileText,
   Presentation,
   Users,
-  TrendingUp,
   ArrowUpRight,
-  Sparkles,
   Clock,
-  Star,
-  Eye,
+  Circle,
+  CheckCircle2,
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { motion } from 'framer-motion'
@@ -55,8 +53,8 @@ export function DashboardView() {
           pitchDeckCount: pitchDecks.length,
           clientRoomCount: rooms.length,
           featuredProjects: projects.filter((p: any) => p.featured).slice(0, 3),
-          recentCaseStudies: caseStudies.slice(0, 2),
-          recentPitchDecks: pitchDecks.slice(0, 2),
+          recentCaseStudies: caseStudies.slice(0, 3),
+          recentPitchDecks: pitchDecks.slice(0, 3),
           activeRooms: rooms.filter((r: any) => r.status === 'active'),
         })
       } catch (error) {
@@ -70,15 +68,10 @@ export function DashboardView() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="space-y-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[...Array(4)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="h-4 bg-muted rounded w-24 mb-3" />
-                <div className="h-8 bg-muted rounded w-16" />
-              </CardContent>
-            </Card>
+            <div key={i} className="h-[72px] bg-muted/30 rounded-lg animate-pulse" />
           ))}
         </div>
       </div>
@@ -88,216 +81,199 @@ export function DashboardView() {
   if (!data) return null
 
   const stats = [
-    { label: 'Portfolio Projects', value: data.projectCount, icon: Briefcase, color: 'from-amber-500 to-orange-500', view: 'portfolio' as const },
-    { label: 'Case Studies', value: data.caseStudyCount, icon: FileText, color: 'from-emerald-500 to-teal-500', view: 'case-studies' as const },
-    { label: 'Proposals', value: data.pitchDeckCount, icon: Presentation, color: 'from-violet-500 to-purple-500', view: 'pitch-decks' as const },
-    { label: 'Client Rooms', value: data.clientRoomCount, icon: Users, color: 'from-rose-500 to-pink-500', view: 'project-rooms' as const },
+    { label: 'Projects', value: data.projectCount, icon: Briefcase, view: 'portfolio' as const },
+    { label: 'Case Studies', value: data.caseStudyCount, icon: FileText, view: 'case-studies' as const },
+    { label: 'Proposals', value: data.pitchDeckCount, icon: Presentation, view: 'pitch-decks' as const },
+    { label: 'Client Rooms', value: data.clientRoomCount, icon: Users, view: 'project-rooms' as const },
   ]
+
+  const phaseColors: Record<string, string> = {
+    discovery: 'text-blue-400',
+    design: 'text-violet-400',
+    development: 'text-amber-400',
+    delivery: 'text-emerald-400',
+    review: 'text-rose-400',
+  }
 
   return (
     <div className="space-y-8">
-      {/* Welcome Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Welcome back, <span className="bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">Engineer Firas</span>
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Here&apos;s what&apos;s happening in your creative studio today.
-            </p>
-          </div>
-          <Button
-            onClick={() => setView('portfolio')}
-            className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg shadow-amber-500/25"
-          >
-            <Sparkles className="w-4 h-4 mr-2" />
-            New Project
-          </Button>
+      {/* Page Header */}
+      <div className="flex items-end justify-between">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">
+            Dashboard
+          </h1>
+          <p className="text-[13px] text-muted-foreground mt-0.5">
+            Overview of your creative studio
+          </p>
         </div>
-      </motion.div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 text-[13px]"
+          onClick={() => setView('portfolio')}
+        >
+          New Project
+        </Button>
+      </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      {/* Stats — Linear-style metric cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {stats.map((stat, i) => (
           <motion.div
             key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: i * 0.1 }}
+            transition={{ duration: 0.2, delay: i * 0.04 }}
           >
-            <Card
-              className="group cursor-pointer hover:shadow-md transition-all duration-300 border-border/50"
+            <div
+              className="h-[72px] px-4 rounded-lg border border-border bg-card hover:bg-accent/50 transition-colors cursor-pointer flex items-center justify-between"
               onClick={() => setView(stat.view)}
             >
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground font-medium">{stat.label}</p>
-                    <p className="text-3xl font-bold mt-1">{stat.value}</p>
-                  </div>
-                  <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-lg`}>
-                    <stat.icon className="w-5 h-5 text-white" />
-                  </div>
-                </div>
-                <div className="flex items-center mt-3 text-xs text-muted-foreground">
-                  <ArrowUpRight className="w-3 h-3 mr-1 text-emerald-500" />
-                  <span className="text-emerald-500 font-medium">Active</span>
-                  <span className="ml-1">— Click to view</span>
-                </div>
-              </CardContent>
-            </Card>
+              <div>
+                <p className="text-[12px] text-muted-foreground font-medium">{stat.label}</p>
+                <p className="text-2xl font-semibold mt-0.5 tracking-tight">{stat.value}</p>
+              </div>
+              <stat.icon className="w-4 h-4 text-muted-foreground/40" />
+            </div>
           </motion.div>
         ))}
       </div>
 
-      {/* Featured Projects */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
-      >
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Star className="w-5 h-5 text-amber-500" />
-            <h2 className="text-lg font-semibold">Featured Work</h2>
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Featured Work — takes 7 cols */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.15 }}
+          className="lg:col-span-7"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-[13px] font-medium text-muted-foreground uppercase tracking-wider">
+              Featured Work
+            </h2>
+            <Button variant="ghost" size="sm" className="h-7 text-[12px] text-muted-foreground" onClick={() => setView('portfolio')}>
+              View all <ArrowUpRight className="w-3 h-3 ml-1" />
+            </Button>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => setView('portfolio')}>
-            View All <ArrowUpRight className="w-4 h-4 ml-1" />
-          </Button>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {data.featuredProjects.map((project) => (
-            <Card
-              key={project.id}
-              className="group cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden border-border/50"
-              onClick={() => setView('portfolio')}
-            >
-              <div className="aspect-[16/10] bg-gradient-to-br from-muted to-muted/50 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                <div className="absolute bottom-3 left-3 right-3">
-                  <Badge variant="secondary" className="bg-white/90 text-foreground backdrop-blur-sm text-xs">
-                    {project.category}
-                  </Badge>
+          <div className="space-y-2">
+            {data.featuredProjects.map((project) => (
+              <div
+                key={project.id}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-border bg-card hover:bg-accent/50 transition-colors cursor-pointer group"
+                onClick={() => setView('portfolio')}
+              >
+                <div className="w-10 h-10 rounded-md bg-gradient-to-br from-muted to-muted/50 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-medium text-foreground truncate group-hover:text-primary transition-colors">
+                    {project.title}
+                  </p>
+                  <p className="text-[12px] text-muted-foreground truncate">{project.category} · {project.year}</p>
                 </div>
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
-                  <Eye className="w-6 h-6 text-white" />
-                </div>
-              </div>
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-sm group-hover:text-amber-500 transition-colors line-clamp-1">
-                  {project.title}
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{project.description}</p>
-                <div className="flex items-center gap-2 mt-3">
+                <div className="flex gap-1.5 flex-shrink-0">
                   {JSON.parse(project.tags || '[]').slice(0, 2).map((tag: string) => (
-                    <Badge key={tag} variant="outline" className="text-[10px] px-2 py-0">
+                    <Badge key={tag} variant="secondary" className="text-[10px] px-1.5 py-0 h-5 bg-muted/60 text-muted-foreground border-0">
                       {tag}
                     </Badge>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </motion.div>
-
-      {/* Bottom Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Case Studies */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-        >
-          <Card className="border-border/50">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-emerald-500" />
-                  Recent Case Studies
-                </CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => setView('case-studies')}>
-                  View All
-                </Button>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {data.recentCaseStudies.map((cs: any) => (
+            ))}
+            {data.featuredProjects.length === 0 && (
+              <div className="text-center py-8 text-[13px] text-muted-foreground">
+                No featured projects yet
+              </div>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Right Column — takes 5 cols */}
+        <div className="lg:col-span-5 space-y-6">
+          {/* Active Projects */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-[13px] font-medium text-muted-foreground uppercase tracking-wider">
+                Active Projects
+              </h2>
+              <Button variant="ghost" size="sm" className="h-7 text-[12px] text-muted-foreground" onClick={() => setView('project-rooms')}>
+                View all
+              </Button>
+            </div>
+            <div className="space-y-1">
+              {data.activeRooms.map((room) => (
+                <div
+                  key={room.id}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
+                  onClick={() => setView('project-room-detail', room.id)}
+                >
+                  <Circle className="w-2 h-2 fill-emerald-500 text-emerald-500 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-medium truncate">{room.name}</p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-[11px] text-muted-foreground">{room.clientName}</span>
+                      <span className="text-[11px] text-muted-foreground/40">·</span>
+                      <span className={`text-[11px] capitalize ${phaseColors[room.phase] || 'text-muted-foreground'}`}>
+                        {room.phase}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {data.activeRooms.length === 0 && (
+                <p className="text-[12px] text-muted-foreground text-center py-6">No active projects</p>
+              )}
+            </div>
+          </motion.div>
+
+          {/* Recent Case Studies */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.25 }}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-[13px] font-medium text-muted-foreground uppercase tracking-wider">
+                Recent Case Studies
+              </h2>
+              <Button variant="ghost" size="sm" className="h-7 text-[12px] text-muted-foreground" onClick={() => setView('case-studies')}>
+                View all
+              </Button>
+            </div>
+            <div className="space-y-1">
+              {data.recentCaseStudies.map((cs) => (
                 <div
                   key={cs.id}
-                  className="flex items-start gap-3 p-3 rounded-lg hover:bg-accent/50 cursor-pointer transition-colors"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
                   onClick={() => setView('case-study-detail', cs.id)}
                 >
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 mt-2 flex-shrink-0" />
+                  <FileText className="w-3.5 h-3.5 text-muted-foreground/50 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{cs.title}</p>
-                    <p className="text-xs text-muted-foreground truncate">{cs.subtitle}</p>
+                    <p className="text-[13px] font-medium truncate">{cs.title}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">{cs.subtitle}</p>
                   </div>
-                  <Badge variant={cs.status === 'published' ? 'default' : 'secondary'} className="text-[10px] flex-shrink-0">
+                  <Badge
+                    variant="secondary"
+                    className={`text-[10px] px-1.5 py-0 h-5 border-0 flex-shrink-0 ${
+                      cs.status === 'published'
+                        ? 'bg-emerald-500/10 text-emerald-400'
+                        : 'bg-amber-500/10 text-amber-400'
+                    }`}
+                  >
                     {cs.status}
                   </Badge>
                 </div>
               ))}
               {data.recentCaseStudies.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  No case studies yet. Create one from your portfolio.
-                </p>
+                <p className="text-[12px] text-muted-foreground text-center py-6">No case studies yet</p>
               )}
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Active Client Rooms */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-        >
-          <Card className="border-border/50">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-rose-500" />
-                  Active Projects
-                </CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => setView('project-rooms')}>
-                  View All
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {data.activeRooms.map((room: any) => (
-                <div
-                  key={room.id}
-                  className="flex items-start gap-3 p-3 rounded-lg hover:bg-accent/50 cursor-pointer transition-colors"
-                  onClick={() => setView('project-room-detail', room.id)}
-                >
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 mt-2 flex-shrink-0 animate-pulse" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{room.name}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-muted-foreground">{room.clientName}</span>
-                      <Badge variant="outline" className="text-[10px] px-2 py-0 capitalize">
-                        {room.phase}
-                      </Badge>
-                    </div>
-                  </div>
-                  <Clock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                </div>
-              ))}
-              {data.activeRooms.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  No active project rooms. Create one to start collaborating.
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
+            </div>
+          </motion.div>
+        </div>
       </div>
     </div>
   )
