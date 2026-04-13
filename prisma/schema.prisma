@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  title     String   @default("Creative Professional")
+  bio       String   @default("")
+  avatar    String   @default("")
+  website   String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projects    Project[]
+  caseStudies CaseStudy[]
+  pitchDecks  PitchDeck[]
+  clientRooms ClientRoom[]
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  category    String   @default("Branding")
+  tags        String   @default("[]")
+  coverImage  String   @default("")
+  images      String   @default("[]")
+  liveUrl     String   @default("")
+  year        String   @default("")
+  featured    Boolean  @default(false)
+  status      String   @default("published")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  caseStudies CaseStudy[]
+}
+
+model CaseStudy {
+  id            String   @id @default(cuid())
+  title         String
+  subtitle      String   @default("")
+  challenge     String   @default("")
+  solution      String   @default("")
+  results       String   @default("")
+  process       String   @default("[]")
+  testimonial   String   @default("")
+  testimonialBy String   @default("")
+  coverImage    String   @default("")
+  status        String   @default("draft")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+}
+
+model PitchDeck {
+  id            String   @id @default(cuid())
+  title         String
+  clientName    String   @default("")
+  subtitle      String   @default("")
+  problem       String   @default("")
+  solution      String   @default("")
+  approach      String   @default("")
+  timeline      String   @default("")
+  investment    String   @default("")
+  deliverables  String   @default("[]")
+  caseStudyRefs String   @default("[]")
+  coverImage    String   @default("")
+  status        String   @default("draft")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model ClientRoom {
+  id          String   @id @default(cuid())
+  name        String
+  clientName  String   @default("")
+  clientEmail String   @default("")
+  description String   @default("")
+  status      String   @default("active")
+  phase       String   @default("discovery")
+  coverImage  String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  messages     Message[]
+  deliverables Deliverable[]
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  sender    String   @default("user")
+  type      String   @default("text")
+  createdAt DateTime @default(now())
+
+  roomId     String
+  clientRoom ClientRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+}
+
+model Deliverable {
+  id        String   @id @default(cuid())
+  title     String
+  type      String   @default("file")
+  url       String   @default("")
+  status    String   @default("pending")
+  dueDate   String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  roomId     String
+  clientRoom ClientRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+}
