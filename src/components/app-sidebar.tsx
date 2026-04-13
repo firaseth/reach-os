@@ -106,11 +106,11 @@ export function AppSidebar() {
           )}
         >
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center flex-shrink-0">
-            <span className="text-white text-sm font-semibold">AR</span>
+            <span className="text-white text-sm font-semibold">EF</span>
           </div>
           {sidebarOpen && (
             <div className="overflow-hidden">
-              <p className="text-sm font-medium text-foreground truncate">Alex Rivera</p>
+              <p className="text-sm font-medium text-foreground truncate">engineer.Firas</p>
               <p className="text-xs text-muted-foreground truncate">Creative Director</p>
             </div>
           )}
