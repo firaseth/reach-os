@@ -400,3 +400,23 @@ Stage Summary:
 - 1 error boundary added
 - 2 dead buttons fixed
 - Build compiles clean
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Fix preview 404 error - sync files and configure dev server
+
+Work Log:
+- Investigated the 404 issue - found that processes don't persist between tool calls
+- Found the system auto-runs `bun run dev` from /home/z/my-project (per SKILL.md)
+- Removed `output: "standalone"` from next.config.ts (caused Turbopack errors in dev mode)
+- Removed `turbopack.root` override (caused path resolution issues)
+- Synced all source files from /home/z/my-project to /tmp/my-project
+- Verified the dev server works when running: port 3000 returns 200, port 81 proxy returns 200
+- The preview Caddy (port 81) correctly proxies to port 3000 when the server is alive
+
+Stage Summary:
+- Root cause: next.config.ts had `output: "standalone"` which broke Turbopack in dev mode
+- Fix: Removed `output: "standalone"` and `turbopack.root` from next.config.ts
+- The system's auto-start mechanism should now be able to run `bun run dev` successfully
+- All optimized code is synced to both /home/z/my-project and /tmp/my-project

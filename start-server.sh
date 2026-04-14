@@ -1,3 +1,3 @@
 #!/bin/bash
-cd /home/z/my-project
-exec node .next/standalone/server.js
+cd /tmp/my-project/.next/standalone
+exec node server.js
