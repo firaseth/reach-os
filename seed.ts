@@ -1,108 +1,126 @@
 import { db } from './src/lib/db'
 
 async function seed() {
+  // Clean existing data
+  await db.message.deleteMany()
+  await db.deliverable.deleteMany()
+  await db.clientRoom.deleteMany()
+  await db.pitchDeck.deleteMany()
+  await db.caseStudy.deleteMany()
+  await db.project.deleteMany()
+  await db.capacityLog.deleteMany()
+  await db.expense.deleteMany()
+  await db.income.deleteMany()
+  await db.pricingPlan.deleteMany()
+  await db.user.deleteMany()
+
   const user = await db.user.create({
     data: {
       name: 'Engineer Firas',
-      title: 'Creative Director & Brand Strategist',
-      bio: 'I help ambitious brands find their voice through strategic design, bold storytelling, and immersive digital experiences. 8+ years crafting visual identities that resonate.',
+      title: 'Creative Director & Full-Stack Developer',
+      bio: 'I help ambitious brands and startups find their voice through strategic design, web development, AI-powered tools, and business strategy. Building Reach OS to make creative tools accessible to everyone.',
       avatar: '',
-      website: 'alexrivera.design',
+      website: 'reachos.dev',
     },
   })
 
+  // --- PROJECTS ---
   const projects = await Promise.all([
     db.project.create({
       data: {
         title: 'Lumina — Brand Identity System',
-        description: 'A complete brand identity overhaul for a sustainable lighting company, including logo, color system, typography, packaging, and digital presence.',
+        description: 'Complete brand identity overhaul for a sustainable lighting company.',
         category: 'Branding',
         tags: JSON.stringify(['Logo Design', 'Color System', 'Typography', 'Packaging']),
-        coverImage: '/placeholder-lumina.jpg',
-        liveUrl: 'https://lumina.design',
         year: '2025',
         featured: true,
         status: 'published',
+        hourlyRate: 85,
+        totalHours: 64,
         userId: user.id,
       },
     }),
     db.project.create({
       data: {
-        title: 'Verdant — E-Commerce Experience',
-        description: 'Designed and developed a premium e-commerce platform for an organic skincare brand, increasing conversions by 47% through thoughtful UX and micro-interactions.',
+        title: 'Verdant — E-Commerce Platform',
+        description: 'Premium e-commerce platform for organic skincare brand, 47% conversion increase.',
         category: 'Web Design',
         tags: JSON.stringify(['E-Commerce', 'UI/UX', 'Development', 'Shopify']),
-        coverImage: '/placeholder-verdant.jpg',
-        liveUrl: 'https://verdantskin.co',
         year: '2025',
         featured: true,
         status: 'published',
+        hourlyRate: 95,
+        totalHours: 120,
         userId: user.id,
       },
     }),
     db.project.create({
       data: {
-        title: 'NovaCorp — Annual Report Design',
-        description: 'Transformed a corporate annual report into an engaging visual narrative with data visualization, infographics, and a bold editorial design approach.',
+        title: 'NovaCorp — Annual Report',
+        description: 'Transformed corporate annual report into visual narrative with data visualization.',
         category: 'Print Design',
         tags: JSON.stringify(['Editorial', 'Data Viz', 'Print', 'Infographics']),
-        coverImage: '/placeholder-nova.jpg',
         year: '2024',
         featured: false,
         status: 'published',
+        hourlyRate: 75,
+        totalHours: 32,
         userId: user.id,
       },
     }),
     db.project.create({
       data: {
-        title: 'Mosaic — Social Media Campaign',
-        description: 'Conceptualized and designed a multi-platform social media campaign for a cultural festival, reaching 2.3M impressions with a cohesive visual system.',
+        title: 'Mosaic — Social Campaign',
+        description: 'Multi-platform social media campaign for cultural festival, 2.3M impressions.',
         category: 'Campaign',
-        tags: JSON.stringify(['Social Media', 'Campaign', 'Motion', 'Content Strategy']),
-        coverImage: '/placeholder-mosaic.jpg',
+        tags: JSON.stringify(['Social Media', 'Campaign', 'Motion', 'Strategy']),
         year: '2024',
         featured: true,
         status: 'published',
+        hourlyRate: 80,
+        totalHours: 48,
         userId: user.id,
       },
     }),
     db.project.create({
       data: {
         title: 'Arcline — Architecture Portfolio',
-        description: 'Built a stunning portfolio website for an architecture firm featuring immersive scroll animations, 3D model previews, and a project showcase system.',
+        description: 'Portfolio website with scroll animations, 3D previews, and project showcase.',
         category: 'Web Design',
         tags: JSON.stringify(['Portfolio', 'Animation', '3D', 'Development']),
-        coverImage: '/placeholder-arcline.jpg',
-        liveUrl: 'https://arcline.arch',
         year: '2024',
         featured: false,
         status: 'published',
+        hourlyRate: 90,
+        totalHours: 80,
         userId: user.id,
       },
     }),
     db.project.create({
       data: {
         title: 'Ember — Restaurant Branding',
-        description: 'Full branding package for a modern Japanese-fusion restaurant, including identity, menu design, signage, environmental graphics, and social media templates.',
+        description: 'Full branding for Japanese-fusion restaurant including identity and environmental graphics.',
         category: 'Branding',
-        tags: JSON.stringify(['Restaurant', 'Identity', 'Menu Design', 'Environmental']),
-        coverImage: '/placeholder-ember.jpg',
+        tags: JSON.stringify(['Restaurant', 'Identity', 'Menu Design']),
         year: '2023',
         featured: false,
         status: 'published',
+        hourlyRate: 70,
+        totalHours: 40,
         userId: user.id,
       },
     }),
   ])
 
-  const caseStudies = await Promise.all([
+  // --- CASE STUDIES ---
+  await Promise.all([
     db.caseStudy.create({
       data: {
         title: 'How Lumina Shined Brighter After Rebranding',
-        subtitle: 'A 180% increase in brand recognition through strategic design thinking',
-        challenge: 'Lumina, a 15-year-old sustainable lighting company, was struggling with an outdated visual identity that failed to communicate their innovation in smart home lighting. Their brand perception was stuck in the past, and they were losing market share to newer, design-forward competitors.',
-        solution: 'We conducted deep stakeholder interviews, competitive analysis, and audience research to define a new brand positioning. The resulting identity system features a dynamic light-beam mark, a warm-to-cool gradient palette representing their product range, and a custom geometric typeface that speaks to both heritage and innovation.',
-        results: 'Within 6 months of the rebrand launch, Lumina saw a 180% increase in brand recognition surveys, a 45% increase in direct web traffic, and secured 3 major retail partnerships that had previously been out of reach. The new packaging system alone contributed to a 28% uplift in shelf appeal metrics.',
+        subtitle: 'A 180% increase in brand recognition through strategic design',
+        challenge: 'Lumina was struggling with an outdated visual identity that failed to communicate innovation in smart home lighting, losing market share to newer competitors.',
+        solution: 'We conducted deep stakeholder interviews and competitive analysis. The resulting identity features a dynamic light-beam mark, warm-to-cool gradient palette, and custom geometric typeface.',
+        results: '180% increase in brand recognition, 45% increase in web traffic, 3 major retail partnerships secured, 28% shelf appeal uplift.',
         process: JSON.stringify([
           { phase: 'Discovery', detail: 'Stakeholder interviews, market research, competitive audit' },
           { phase: 'Strategy', detail: 'Brand positioning, value proposition, audience personas' },
@@ -110,9 +128,8 @@ async function seed() {
           { phase: 'Application', detail: 'Packaging, digital, environmental, guidelines' },
           { phase: 'Launch', detail: 'Internal rollout, public launch, campaign support' },
         ]),
-        testimonial: 'The rebrand completely transformed how our customers perceive us. We went from "that old lighting company" to "the most exciting brand in smart home lighting."',
+        testimonial: 'The rebrand completely transformed how customers perceive us.',
         testimonialBy: 'Sarah Chen, CEO of Lumina',
-        coverImage: '/placeholder-lumina.jpg',
         status: 'published',
         userId: user.id,
         projectId: projects[0].id,
@@ -120,21 +137,20 @@ async function seed() {
     }),
     db.caseStudy.create({
       data: {
-        title: 'Verdant\'s Path to 47% More Conversions',
+        title: "Verdant's Path to 47% More Conversions",
         subtitle: 'Turning visitors into loyal customers through experience design',
-        challenge: 'Verdant had beautiful products but a digital experience that didn\'t match their premium positioning. Their existing Shopify store had a 1.2% conversion rate — below the 2.5% industry average for premium beauty brands. Cart abandonment was at 78%.',
-        solution: 'We redesigned the entire purchase journey from product discovery to checkout. Key interventions included immersive product storytelling, a guided skincare quiz, social proof integration, and a streamlined 2-step checkout. Every interaction was designed to build trust and reduce friction.',
-        results: 'Conversion rate jumped from 1.2% to 1.77% (47% increase), average order value increased by 23%, cart abandonment dropped to 61%, and customer satisfaction scores rose from 3.8 to 4.6 out of 5.',
+        challenge: "Verdant had beautiful products but a digital experience that didn't match their premium positioning. Conversion rate was 1.2% — below the 2.5% industry average.",
+        solution: 'We redesigned the entire purchase journey including immersive product storytelling, a guided skincare quiz, social proof integration, and streamlined 2-step checkout.',
+        results: 'Conversion rate jumped from 1.2% to 1.77% (47% increase), AOV increased 23%, cart abandonment dropped to 61%.',
         process: JSON.stringify([
-          { phase: 'Audit', detail: 'UX review, analytics deep-dive, user testing sessions' },
-          { phase: 'Strategy', detail: 'Purchase journey mapping, feature prioritization' },
-          { phase: 'Design', detail: 'Wireframes, visual design, interaction patterns' },
-          { phase: 'Build', detail: 'Shopify theme development, custom features' },
-          { phase: 'Optimize', detail: 'A/B testing, analytics monitoring, iteration' },
+          { phase: 'Audit', detail: 'UX review, analytics deep-dive, user testing' },
+          { phase: 'Strategy', detail: 'Journey mapping, feature prioritization' },
+          { phase: 'Design', detail: 'Wireframes, visual design, interactions' },
+          { phase: 'Build', detail: 'Shopify theme, custom features' },
+          { phase: 'Optimize', detail: 'A/B testing, analytics, iteration' },
         ]),
-        testimonial: 'Our customers now tell us the website feels like an experience, not just a store. That\'s exactly what we wanted.',
+        testimonial: 'Our customers now tell us the website feels like an experience, not just a store.',
         testimonialBy: 'Marcus Wei, Founder of Verdant',
-        coverImage: '/placeholder-verdant.jpg',
         status: 'published',
         userId: user.id,
         projectId: projects[1].id,
@@ -142,29 +158,19 @@ async function seed() {
     }),
   ])
 
+  // --- PITCH DECKS ---
   await Promise.all([
     db.pitchDeck.create({
       data: {
         title: 'Solace Wellness — Brand & Digital Transformation',
         clientName: 'Solace Wellness',
-        subtitle: 'A comprehensive rebrand and digital ecosystem for a holistic wellness company',
-        problem: 'Solace Wellness has grown organically for 7 years but now faces increasing competition from well-funded startups. Their current brand doesn\'t reflect the premium quality of their services, and their digital presence is fragmented across multiple platforms with no cohesive experience.',
-        solution: 'We propose a full brand transformation including a new visual identity system, a unified digital platform (website + app), and a content strategy that positions Solace as the authoritative voice in holistic wellness.',
-        approach: 'Phase 1: Brand Strategy & Identity (4 weeks)\nPhase 2: Website Design & Development (6 weeks)\nPhase 3: App Design & MVP (8 weeks)\nPhase 4: Content Strategy & Launch Support (3 weeks)',
-        timeline: '21 weeks total, with phased delivery allowing early wins',
-        investment: '$48,000 — $62,000 (depending on app scope)',
-        deliverables: JSON.stringify([
-          'Brand Strategy Document',
-          'Logo & Visual Identity System',
-          'Brand Guidelines (100+ pages)',
-          'Responsive Website (12+ pages)',
-          'Mobile App MVP (iOS + Android)',
-          'Content Strategy Playbook',
-          'Social Media Template Kit',
-          'Launch Campaign Assets',
-        ]),
-        caseStudyRefs: JSON.stringify([caseStudies[0].id, caseStudies[1].id]),
-        coverImage: '/placeholder-solace.jpg',
+        subtitle: 'Comprehensive rebrand and digital ecosystem',
+        problem: 'Solace has grown organically for 7 years but faces increasing competition. Current brand does not reflect premium service quality, and digital presence is fragmented.',
+        solution: 'Full brand transformation including new visual identity, unified digital platform (website + app), and content strategy positioning Solace as the authoritative wellness voice.',
+        approach: 'Phase 1: Brand Strategy (4 weeks)\nPhase 2: Website (6 weeks)\nPhase 3: App MVP (8 weeks)\nPhase 4: Launch Support (3 weeks)',
+        timeline: '21 weeks total',
+        investment: '$48,000 — $62,000',
+        deliverables: JSON.stringify(['Brand Strategy Doc', 'Logo & Identity System', 'Brand Guidelines', 'Responsive Website', 'Mobile App MVP', 'Content Strategy', 'Social Templates', 'Launch Campaign']),
         status: 'draft',
         userId: user.id,
       },
@@ -173,75 +179,218 @@ async function seed() {
       data: {
         title: 'Helix Studios — Creative Direction Retainer',
         clientName: 'Helix Studios',
-        subtitle: 'Ongoing creative direction and brand stewardship for an animation studio',
-        problem: 'Helix Studios produces world-class animation but struggles with consistent branding across their growing portfolio of original content. Each new show launches with its own identity that doesn\'t build the Helix parent brand.',
-        solution: 'A monthly creative direction retainer providing brand oversight, visual system maintenance, and strategic guidance for all new content launches. Think of it as a creative partner who ensures every touchpoint strengthens the Helix brand.',
-        approach: 'Monthly retainer including:\n- Brand reviews for new content launches\n- Visual asset creation and oversight\n- Social media creative direction\n- Event and conference materials\n- Quarterly brand health reports',
-        timeline: '12-month initial commitment, reviewed quarterly',
-        investment: '$5,500/month (includes up to 40 hours of creative direction)',
-        deliverables: JSON.stringify([
-          'Monthly Brand Review Report',
-          'Visual Asset Library Updates',
-          'Social Media Creative Templates',
-          'Event Materials (as needed)',
-          'Quarterly Brand Health Report',
-          'New Content Launch Support',
-        ]),
-        caseStudyRefs: JSON.stringify([caseStudies[0].id]),
-        coverImage: '/placeholder-helix.jpg',
+        subtitle: 'Ongoing creative direction for animation studio',
+        problem: 'Helix produces world-class animation but struggles with consistent branding across their growing content portfolio.',
+        solution: 'Monthly creative direction retainer providing brand oversight, visual system maintenance, and strategic guidance for all content launches.',
+        approach: 'Monthly: Brand reviews, visual asset creation, social media direction, event materials, quarterly brand health reports.',
+        timeline: '12-month commitment',
+        investment: '$5,500/month',
+        deliverables: JSON.stringify(['Monthly Brand Review', 'Visual Asset Updates', 'Social Templates', 'Event Materials', 'Quarterly Health Report']),
         status: 'sent',
         userId: user.id,
       },
     }),
   ])
 
+  // --- CLIENT ROOMS ---
   await Promise.all([
     db.clientRoom.create({
+      data: { name: 'Solace Wellness Project', clientName: 'Solace Wellness', clientEmail: 'hello@solacewellness.com', description: 'Brand & digital transformation', status: 'active', phase: 'design', userId: user.id },
+    }),
+    db.clientRoom.create({
+      data: { name: 'Helix Studios Retainer', clientName: 'Helix Studios', clientEmail: 'team@helixstudios.co', description: 'Monthly creative direction', status: 'active', phase: 'delivery', userId: user.id },
+    }),
+    db.clientRoom.create({
+      data: { name: 'Verdant Phase 2', clientName: 'Verdant Skin', clientEmail: 'growth@verdantskin.co', description: 'Phase 2 optimization', status: 'paused', phase: 'discovery', userId: user.id },
+    }),
+  ])
+
+  // --- INCOME (Realistic freelance/agency revenue) ---
+  const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12']
+
+  const projectIncome: [string, number][] = [
+    ['2025-01', 3200], ['2025-01', 1800],
+    ['2025-02', 4100], ['2025-02', 2200],
+    ['2025-03', 5800], ['2025-03', 3100], ['2025-03', 1500],
+    ['2025-04', 4500], ['2025-04', 2800],
+    ['2025-05', 6200], ['2025-05', 3400], ['2025-05', 900],
+    ['2025-06', 7100], ['2025-06', 3800], ['2025-06', 1200],
+    ['2025-07', 5500], ['2025-07', 4100],
+    ['2025-08', 6800], ['2025-08', 3200], ['2025-08', 2000],
+    ['2025-09', 7400], ['2025-09', 4500],
+    ['2025-10', 8200], ['2025-10', 3800], ['2025-10', 1500],
+    ['2025-11', 6900], ['2025-11', 4200], ['2025-11', 2400],
+    ['2025-12', 5800], ['2025-12', 3600],
+  ]
+
+  const retainerIncome: [string, number][] = [
+    ['2025-01', 5500], ['2025-02', 5500], ['2025-03', 5500],
+    ['2025-04', 5500], ['2025-05', 5500], ['2025-06', 5500],
+    ['2025-07', 5500], ['2025-08', 5500], ['2025-09', 5500],
+    ['2025-10', 5500], ['2025-11', 5500], ['2025-12', 5500],
+  ]
+
+  await Promise.all([
+    ...projectIncome.map(([date, amount]) =>
+      db.income.create({ data: { source: 'Client Project', category: 'Project', amount, date, recurring: false, userId: user.id } })
+    ),
+    ...retainerIncome.map(([date, amount]) =>
+      db.income.create({ data: { source: 'Helix Studios Retainer', category: 'Retainer', amount, date, recurring: true, userId: user.id } })
+    ),
+  ])
+
+  // --- EXPENSES (Realistic costs) ---
+  const expenseData: [string, string, string, number, boolean][] = [
+    // Software subscriptions
+    ['2025-01', 'Adobe Creative Cloud', 'Software', 54.99, true],
+    ['2025-01', 'Figma Pro', 'Software', 15, true],
+    ['2025-01', 'Notion', 'Software', 10, true],
+    ['2025-01', 'Vercel Pro', 'Software', 20, true],
+    ['2025-01', 'Domain + Hosting', 'Infrastructure', 29.99, true],
+    ['2025-01', 'OpenAI API', 'Software', 45, false],
+    // Monthly recurring across all months
+    ...months.flatMap(m => [
+      [m, 'Adobe Creative Cloud', 'Software', 54.99, true] as [string, string, string, number, boolean],
+      [m, 'Figma Pro', 'Software', 15, true] as [string, string, string, number, boolean],
+      [m, 'Notion', 'Software', 10, true] as [string, string, string, number, boolean],
+      [m, 'Vercel Pro', 'Software', 20, true] as [string, string, string, number, boolean],
+      [m, 'Domain + Hosting', 'Infrastructure', 29.99, true] as [string, string, string, number, boolean],
+    ]),
+    // Variable costs
+    ['2025-02', 'Stock Photography', 'Assets', 89, false],
+    ['2025-03', 'OpenAI API', 'Software', 120, false],
+    ['2025-04', 'Freelance Copywriter', 'Contractors', 800, false],
+    ['2025-05', 'Google Fonts License', 'Assets', 49, false],
+    ['2025-06', 'Stock Photography', 'Assets', 65, false],
+    ['2025-07', 'OpenAI API', 'Software', 95, false],
+    ['2025-08', 'Freelance Illustrator', 'Contractors', 1200, false],
+    ['2025-09', 'Equipment (Monitor)', 'Equipment', 450, false],
+    ['2025-10', 'OpenAI API', 'Software', 110, false],
+    ['2025-11', 'Conference Ticket', 'Education', 299, false],
+    ['2025-12', 'Stock Photography', 'Assets', 75, false],
+  ]
+
+  // Deduplicate
+  const seen = new Set<string>()
+  await Promise.all(
+    expenseData
+      .filter(([date, vendor]) => {
+        const key = `${date}-${vendor}`
+        if (seen.has(key)) return false
+        seen.add(key)
+        return true
+      })
+      .map(([date, vendor, category, amount, recurring]) =>
+        db.expense.create({ data: { vendor: vendor!, category: category!, amount: amount!, date: date!, recurring: recurring!, userId: user.id } })
+      )
+  )
+
+  // --- PRICING PLANS (Near-free strategy) ---
+  await Promise.all([
+    db.pricingPlan.create({
       data: {
-        name: 'Solace Wellness Project',
-        clientName: 'Solace Wellness',
-        clientEmail: 'hello@solacewellness.com',
-        description: 'Brand & digital transformation project for holistic wellness company',
-        status: 'active',
-        phase: 'design',
-        coverImage: '/placeholder-solace.jpg',
+        name: 'Starter',
+        price: 0,
+        interval: 'monthly',
+        features: JSON.stringify([
+          'Up to 3 portfolio projects',
+          '1 case study',
+          'Basic AI assistance (10 uses/month)',
+          '1 client room',
+          'Community support',
+        ]),
+        targetUsers: 'Students, hobbyists, early-career creatives',
+        position: 1,
+        isActive: true,
         userId: user.id,
       },
     }),
-    db.clientRoom.create({
+    db.pricingPlan.create({
       data: {
-        name: 'Helix Studios Retainer',
-        clientName: 'Helix Studios',
-        clientEmail: 'team@helixstudios.co',
-        description: 'Monthly creative direction retainer for animation studio',
-        status: 'active',
-        phase: 'delivery',
-        coverImage: '/placeholder-helix.jpg',
+        name: 'Pro',
+        price: 9,
+        interval: 'monthly',
+        features: JSON.stringify([
+          'Unlimited portfolio projects',
+          'Unlimited case studies',
+          'AI-powered proposals (50 uses/month)',
+          '5 client rooms',
+          'Revenue dashboard',
+          'Capacity planner',
+          'Priority support',
+          'Custom branding',
+        ]),
+        targetUsers: 'Freelancers, independent creatives',
+        position: 2,
+        isActive: true,
         userId: user.id,
       },
     }),
-    db.clientRoom.create({
+    db.pricingPlan.create({
       data: {
-        name: 'Verdant Phase 2',
-        clientName: 'Verdant Skin',
-        clientEmail: 'growth@verdantskin.co',
-        description: 'Phase 2 optimization and feature additions for e-commerce platform',
-        status: 'paused',
-        phase: 'discovery',
-        coverImage: '/placeholder-verdant.jpg',
+        name: 'Studio',
+        price: 29,
+        interval: 'monthly',
+        features: JSON.stringify([
+          'Everything in Pro',
+          'Unlimited client rooms',
+          'Unlimited AI usage',
+          'Finance & P&L tracking',
+          'Team collaboration (3 members)',
+          'White-label client portal',
+          'API access',
+          'Dedicated support',
+        ]),
+        targetUsers: 'Small studios, agencies',
+        position: 3,
+        isActive: true,
+        userId: user.id,
+      },
+    }),
+    db.pricingPlan.create({
+      data: {
+        name: 'Enterprise',
+        price: 79,
+        interval: 'monthly',
+        features: JSON.stringify([
+          'Everything in Studio',
+          'Unlimited team members',
+          'Advanced analytics',
+          'Custom integrations',
+          'SLA guarantee',
+          'Onboarding & training',
+          'Account manager',
+          'SSO & SAML',
+        ]),
+        targetUsers: 'Agencies, enterprise teams',
+        position: 4,
+        isActive: true,
         userId: user.id,
       },
     }),
   ])
 
-  console.log('Seed data created successfully!')
+  // --- CAPACITY LOGS ---
+  await Promise.all(
+    months.map((month, i) => {
+      // Simulate realistic capacity (40 hrs/week = ~173 hrs/month available)
+      const hoursAvailable = 173
+      // Vary utilization between 55-85%
+      const utilizationBase = 0.55 + (i * 0.025) + Math.sin(i * 0.7) * 0.1
+      const hoursWorked = Math.round(hoursAvailable * Math.max(0.5, Math.min(0.9, utilizationBase)))
+      return db.capacityLog.create({
+        data: { date: month, hoursWorked, hoursAvailable, notes: '', userId: user.id },
+      })
+    })
+  )
+
+  console.log('Reach OS seed data created successfully!')
+  console.log(`- ${projects.length} projects`)
+  console.log(`- ${projectIncome.length + retainerIncome.length} income records`)
+  console.log(`- ${months.length} months of capacity data`)
+  console.log(`- 4 pricing plans (Starter free → Enterprise $79)`)
 }
 
 seed()
-  .catch((e) => {
-    console.error(e)
-    process.exit(1)
-  })
-  .finally(async () => {
-    await db.$disconnect()
-  })
+  .catch((e) => { console.error(e); process.exit(1) })
+  .finally(async () => { await db.$disconnect() })

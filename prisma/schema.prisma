@@ -17,10 +17,14 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  projects    Project[]
-  caseStudies CaseStudy[]
-  pitchDecks  PitchDeck[]
-  clientRooms ClientRoom[]
+  projects      Project[]
+  caseStudies   CaseStudy[]
+  pitchDecks    PitchDeck[]
+  clientRooms   ClientRoom[]
+  incomes       Income[]
+  expenses      Expense[]
+  pricingPlans  PricingPlan[]
+  capacityLogs  CapacityLog[]
 }
 
 model Project {
@@ -35,6 +39,8 @@ model Project {
   year        String   @default("")
   featured    Boolean  @default(false)
   status      String   @default("published")
+  hourlyRate  Float    @default(0)
+  totalHours  Float    @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -128,4 +134,64 @@ model Deliverable {
 
   roomId     String
   clientRoom ClientRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+}
+
+model Income {
+  id          String   @id @default(cuid())
+  source      String
+  category    String   @default("Project")
+  amount      Float
+  date        String
+  recurring   Boolean  @default(false)
+  notes       String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  vendor      String
+  category    String   @default("Software")
+  amount      Float
+  date        String
+  recurring   Boolean  @default(false)
+  notes       String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model PricingPlan {
+  id          String   @id @default(cuid())
+  name        String
+  price       Float
+  interval    String   @default("monthly")
+  features    String   @default("[]")
+  targetUsers String   @default("")
+  position    Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model CapacityLog {
+  id          String   @id @default(cuid())
+  date        String
+  hoursWorked Float
+  hoursAvailable Float
+  projectRef  String   @default("")
+  notes       String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 }

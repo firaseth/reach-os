@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Creative OS — Your Personal Creative Studio Platform',
-  description: 'A creative studio platform combining portfolio, case studies, AI-powered proposals, and client collaboration. Built by creatives, for creatives.',
+  title: 'Reach OS — Business Intelligence & Creative Studio Platform',
+  description: 'Revenue dashboards, capacity planning, finance tracking, portfolio management, and AI-powered proposals. The all-in-one platform for creative professionals.',
   icons: {
     icon: '/logo.svg',
   },

@@ -4,12 +4,15 @@ import { useAppStore } from '@/lib/store'
 import { cn } from '@/lib/utils'
 import {
   LayoutDashboard,
+  DollarSign,
+  Receipt,
+  Gauge,
+  CreditCard,
   Briefcase,
   FileText,
   Presentation,
   Users,
   Command,
-  ChevronLeft,
   PanelLeftClose,
   PanelLeft,
 } from 'lucide-react'
@@ -21,16 +24,36 @@ import {
 } from '@/components/ui/tooltip'
 import { Separator } from '@/components/ui/separator'
 
-const navItems = [
-  { id: 'dashboard' as const, label: 'Dashboard', icon: LayoutDashboard, shortcut: '⌘1' },
-  { id: 'portfolio' as const, label: 'Portfolio', icon: Briefcase, shortcut: '⌘2' },
-  { id: 'case-studies' as const, label: 'Case Studies', icon: FileText, shortcut: '⌘3' },
-  { id: 'pitch-decks' as const, label: 'Proposals', icon: Presentation, shortcut: '⌘4' },
-  { id: 'project-rooms' as const, label: 'Client Rooms', icon: Users, shortcut: '⌘5' },
+const navSections = [
+  {
+    label: 'Business',
+    items: [
+      { id: 'dashboard' as const, label: 'Dashboard', icon: LayoutDashboard, shortcut: '⌘1' },
+      { id: 'revenue' as const, label: 'Revenue', icon: DollarSign, shortcut: '⌘2' },
+      { id: 'finance' as const, label: 'Finance', icon: Receipt, shortcut: '⌘3' },
+      { id: 'capacity' as const, label: 'Capacity', icon: Gauge, shortcut: '⌘4' },
+      { id: 'pricing' as const, label: 'Pricing', icon: CreditCard, shortcut: '⌘5' },
+    ],
+  },
+  {
+    label: 'Creative',
+    items: [
+      { id: 'portfolio' as const, label: 'Portfolio', icon: Briefcase, shortcut: '⌘6' },
+      { id: 'case-studies' as const, label: 'Case Studies', icon: FileText, shortcut: '⌘7' },
+      { id: 'pitch-decks' as const, label: 'Proposals', icon: Presentation, shortcut: '⌘8' },
+      { id: 'project-rooms' as const, label: 'Client Rooms', icon: Users, shortcut: '⌘9' },
+    ],
+  },
 ]
 
 export function AppSidebar() {
   const { currentView, setView, sidebarOpen, toggleSidebar } = useAppStore()
+
+  const isActive = (id: string) =>
+    currentView === id ||
+    (id === 'case-studies' && currentView?.startsWith('case-study')) ||
+    (id === 'pitch-decks' && currentView?.startsWith('pitch-deck')) ||
+    (id === 'project-rooms' && currentView?.startsWith('project-room'))
 
   return (
     <aside
@@ -52,7 +75,7 @@ export function AppSidebar() {
                 <Command className="w-3.5 h-3.5 text-primary-foreground" />
               </div>
               <span className="text-[13px] font-semibold tracking-tight text-foreground">
-                Creative OS
+                Reach OS
               </span>
             </div>
             <Button
@@ -77,53 +100,58 @@ export function AppSidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-2 mt-1">
-        <div className="space-y-0.5">
-          {navItems.map((item) => {
-            const isActive = currentView === item.id ||
-              (item.id === 'case-studies' && currentView?.startsWith('case-study')) ||
-              (item.id === 'pitch-decks' && currentView?.startsWith('pitch-deck')) ||
-              (item.id === 'project-rooms' && currentView?.startsWith('project-room'))
+      <nav className="flex-1 px-2 mt-1 overflow-y-auto">
+        {navSections.map((section) => (
+          <div key={section.label} className="mb-4">
+            {sidebarOpen && (
+              <span className="px-2.5 mb-1 block text-[10px] font-medium text-sidebar-foreground/40 uppercase tracking-widest">
+                {section.label}
+              </span>
+            )}
+            <div className="space-y-0.5">
+              {section.items.map((item) => {
+                const active = isActive(item.id)
+                const button = (
+                  <button
+                    key={item.id}
+                    onClick={() => setView(item.id)}
+                    className={cn(
+                      'w-full flex items-center rounded-md text-[13px] font-medium transition-colors',
+                      'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
+                      sidebarOpen ? 'h-8 px-2.5 gap-2.5' : 'h-8 justify-center',
+                      active
+                        ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                        : 'text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent'
+                    )}
+                  >
+                    <item.icon className={cn(
+                      'w-4 h-4 flex-shrink-0',
+                      active ? 'text-primary' : 'text-sidebar-foreground/60'
+                    )} />
+                    {sidebarOpen && <span className="truncate">{item.label}</span>}
+                    {sidebarOpen && item.shortcut && (
+                      <span className="ml-auto text-[11px] text-sidebar-foreground/30 font-normal">
+                        {item.shortcut}
+                      </span>
+                    )}
+                  </button>
+                )
 
-            const button = (
-              <button
-                key={item.id}
-                onClick={() => setView(item.id)}
-                className={cn(
-                  'w-full flex items-center rounded-md text-[13px] font-medium transition-colors',
-                  'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
-                  sidebarOpen ? 'h-8 px-2.5 gap-2.5' : 'h-8 justify-center',
-                  isActive
-                    ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                    : 'text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent'
-                )}
-              >
-                <item.icon className={cn(
-                  'w-4 h-4 flex-shrink-0',
-                  isActive ? 'text-primary' : 'text-sidebar-foreground/60'
-                )} />
-                {sidebarOpen && <span className="truncate">{item.label}</span>}
-                {sidebarOpen && item.shortcut && (
-                  <span className="ml-auto text-[11px] text-sidebar-foreground/30 font-normal">
-                    {item.shortcut}
-                  </span>
-                )}
-              </button>
-            )
-
-            if (!sidebarOpen) {
-              return (
-                <Tooltip key={item.id} delayDuration={0}>
-                  <TooltipTrigger asChild>{button}</TooltipTrigger>
-                  <TooltipContent side="right" className="text-xs font-medium">
-                    {item.label}
-                  </TooltipContent>
-                </Tooltip>
-              )
-            }
-            return button
-          })}
-        </div>
+                if (!sidebarOpen) {
+                  return (
+                    <Tooltip key={item.id} delayDuration={0}>
+                      <TooltipTrigger asChild>{button}</TooltipTrigger>
+                      <TooltipContent side="right" className="text-xs font-medium">
+                        {item.label}
+                      </TooltipContent>
+                    </Tooltip>
+                  )
+                }
+                return button
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
       {/* User */}
@@ -140,12 +168,8 @@ export function AppSidebar() {
           </div>
           {sidebarOpen && (
             <div className="min-w-0 flex-1">
-              <p className="text-[13px] font-medium text-foreground truncate leading-tight">
-                Engineer Firas
-              </p>
-              <p className="text-[11px] text-sidebar-foreground truncate leading-tight">
-                Creative Director
-              </p>
+              <p className="text-[13px] font-medium text-foreground truncate leading-tight">Engineer Firas</p>
+              <p className="text-[11px] text-sidebar-foreground truncate leading-tight">Creative Director</p>
             </div>
           )}
         </div>
