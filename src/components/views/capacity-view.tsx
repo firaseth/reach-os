@@ -9,14 +9,45 @@ import {
   Zap,
   Target,
   BarChart3,
+  Plus,
+  Pencil,
+  Trash2,
+  Loader2,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { ExportToolbar } from '@/components/export-toolbar'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog'
+import { useToast } from '@/hooks/use-toast'
 
 export function CapacityView() {
   const [logs, setLogs] = useState<any[]>([])
   const [projects, setProjects] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
+
+  // Entry dialog state
+  const [showEntryDialog, setShowEntryDialog] = useState(false)
+  const [editingEntry, setEditingEntry] = useState<any>(null)
+  const [entryForm, setEntryForm] = useState({ date: '', hoursWorked: 0, hoursAvailable: 160, projectRef: '', notes: '' })
+  const [entrySaving, setEntrySaving] = useState(false)
+
+  // Delete dialog state
+  const [deletingEntry, setDeletingEntry] = useState<any>(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
 
   useEffect(() => {
     Promise.all([fetchWithAuth('/api/capacity').then((r) => r.json()), fetchWithAuth('/api/projects').then((r) => r.json())])
@@ -24,6 +55,72 @@ export function CapacityView() {
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
+
+  async function handleSaveEntry() {
+    setEntrySaving(true)
+    try {
+      if (editingEntry) {
+        // Update
+        await fetchWithAuth('/api/capacity', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: editingEntry.id, ...entryForm }),
+        })
+        setLogs((prev) => prev.map((l) => (l.id === editingEntry.id ? { ...l, ...entryForm } : l)))
+        toast({ title: 'Entry updated', description: 'Capacity log has been updated.' })
+      } else {
+        // Create
+        const res = await fetchWithAuth('/api/capacity', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(entryForm),
+        })
+        const newLog = await res.json()
+        setLogs((prev) => [...prev, newLog])
+        toast({ title: 'Entry added', description: 'New capacity log has been created.' })
+      }
+      setShowEntryDialog(false)
+      setEditingEntry(null)
+      setEntryForm({ date: '', hoursWorked: 0, hoursAvailable: 160, projectRef: '', notes: '' })
+    } catch {
+      toast({ title: 'Error', description: 'Failed to save entry.', variant: 'destructive' })
+    } finally {
+      setEntrySaving(false)
+    }
+  }
+
+  function handleEditEntry(log: any) {
+    setEditingEntry(log)
+    setEntryForm({
+      date: log.date,
+      hoursWorked: log.hoursWorked,
+      hoursAvailable: log.hoursAvailable,
+      projectRef: log.projectRef || '',
+      notes: log.notes || '',
+    })
+    setShowEntryDialog(true)
+  }
+
+  function handleOpenNewEntry() {
+    setEditingEntry(null)
+    setEntryForm({ date: '', hoursWorked: 0, hoursAvailable: 160, projectRef: '', notes: '' })
+    setShowEntryDialog(true)
+  }
+
+  async function confirmDeleteEntry() {
+    if (!deletingEntry) return
+    setDeleteLoading(true)
+    try {
+      await fetchWithAuth(`/api/capacity?id=${deletingEntry.id}`, { method: 'DELETE' })
+      setLogs((prev) => prev.filter((l) => l.id !== deletingEntry.id))
+      toast({ title: 'Entry deleted', description: 'Capacity log has been removed.' })
+      setDeletingEntry(null)
+    } catch {
+      toast({ title: 'Error', description: 'Failed to delete entry.', variant: 'destructive' })
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
 
   const metrics = useMemo(() => {
     if (logs.length === 0) return null
@@ -83,7 +180,13 @@ export function CapacityView() {
           <h1 className="text-xl font-semibold tracking-tight text-foreground">Capacity</h1>
           <p className="text-[13px] text-muted-foreground mt-0.5">Plan your workload and optimize utilization</p>
         </div>
-        <ExportToolbar reportType="capacity" reportLabel="Capacity" />
+        <div className="flex items-center gap-2">
+          <Button size="sm" onClick={handleOpenNewEntry} className="h-8 gap-1.5">
+            <Plus className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Add Log</span>
+          </Button>
+          <ExportToolbar reportType="capacity" reportLabel="Capacity" />
+        </div>
       </div>
 
       {/* Key Metrics */}
@@ -189,18 +292,30 @@ export function CapacityView() {
         <div>
           <h2 className="text-[13px] font-medium text-muted-foreground uppercase tracking-wider mb-3">Hours Breakdown</h2>
           <div className="border border-border rounded-lg overflow-hidden">
-            <div className="px-4 py-2.5 border-b border-border bg-muted/20 grid grid-cols-3 gap-4">
+            <div className="px-4 py-2.5 border-b border-border bg-muted/20 grid grid-cols-4 gap-4">
               <span className="text-[11px] font-medium text-muted-foreground uppercase">Month</span>
               <span className="text-[11px] font-medium text-muted-foreground uppercase text-right">Worked</span>
               <span className="text-[11px] font-medium text-muted-foreground uppercase text-right">Available</span>
+              <span />
             </div>
-            {[...metrics.monthlyData].reverse().map((m) => (
-              <div key={m.date} className="px-4 py-2.5 border-b border-border last:border-0 grid grid-cols-3 gap-4 hover:bg-accent/30 transition-colors">
-                <span className="text-[13px]">{m.label}</span>
-                <span className="text-[13px] text-right font-medium">{fmt(m.worked)}h</span>
-                <span className="text-[13px] text-right text-muted-foreground">{fmt(m.available)}h</span>
-              </div>
-            ))}
+            {[...metrics.monthlyData].reverse().map((m) => {
+              const log = logs.find((l) => l.date === m.date)
+              return (
+                <div key={m.date} className="px-4 py-2.5 border-b border-border last:border-0 grid grid-cols-4 gap-4 items-center hover:bg-accent/30 transition-colors group">
+                  <span className="text-[13px]">{m.label}</span>
+                  <span className="text-[13px] text-right font-medium">{fmt(m.worked)}h</span>
+                  <span className="text-[13px] text-right text-muted-foreground">{fmt(m.available)}h</span>
+                  <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => handleEditEntry(log)} className="h-6 w-6 flex items-center justify-center rounded hover:bg-accent">
+                      <Pencil className="w-3 h-3 text-muted-foreground" />
+                    </button>
+                    <button onClick={() => setDeletingEntry(log)} className="h-6 w-6 flex items-center justify-center rounded hover:bg-accent">
+                      <Trash2 className="w-3 h-3 text-destructive" />
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
 
@@ -262,6 +377,100 @@ export function CapacityView() {
           </div>
         </div>
       </div>
+
+      {/* Add / Edit Entry Dialog */}
+      <Dialog open={showEntryDialog} onOpenChange={(open) => { if (!open) { setShowEntryDialog(false); setEditingEntry(null) } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editingEntry ? 'Edit Capacity Log' : 'Add Capacity Log'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <Label className="text-[13px]">Date (Month)</Label>
+              <Input
+                type="month"
+                value={entryForm.date}
+                onChange={(e) => setEntryForm((f) => ({ ...f, date: e.target.value }))}
+                className="h-9"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="text-[13px]">Hours Worked</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={entryForm.hoursWorked}
+                  onChange={(e) => setEntryForm((f) => ({ ...f, hoursWorked: Number(e.target.value) }))}
+                  className="h-9"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[13px]">Hours Available</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={entryForm.hoursAvailable}
+                  onChange={(e) => setEntryForm((f) => ({ ...f, hoursAvailable: Number(e.target.value) }))}
+                  className="h-9"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[13px]">Project Reference <span className="text-muted-foreground">(optional)</span></Label>
+              <Input
+                value={entryForm.projectRef}
+                onChange={(e) => setEntryForm((f) => ({ ...f, projectRef: e.target.value }))}
+                placeholder="e.g. Client Website Redesign"
+                className="h-9"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[13px]">Notes <span className="text-muted-foreground">(optional)</span></Label>
+              <Textarea
+                value={entryForm.notes}
+                onChange={(e) => setEntryForm((f) => ({ ...f, notes: e.target.value }))}
+                placeholder="Any additional context..."
+                rows={3}
+                className="resize-none"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="ghost" size="sm" onClick={() => { setShowEntryDialog(false); setEditingEntry(null) }} className="h-8">
+                Cancel
+              </Button>
+              <Button size="sm" onClick={handleSaveEntry} disabled={!entryForm.date || entrySaving} className="h-8">
+                {entrySaving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                {editingEntry ? 'Save Changes' : 'Add Entry'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deletingEntry} onOpenChange={(open) => { if (!open) setDeletingEntry(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Capacity Log</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the capacity log for{' '}
+              <span className="font-medium text-foreground">{deletingEntry?.date}</span>? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-8">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteEntry}
+              disabled={deleteLoading}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 h-8"
+            >
+              {deleteLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

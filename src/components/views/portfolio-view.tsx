@@ -6,7 +6,6 @@ import { fetchWithAuth } from '@/lib/api'
 import {
   Plus,
   Search,
-  ExternalLink,
   Star,
   Sparkles,
   Loader2,
@@ -20,6 +19,17 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog'
+import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -42,6 +52,11 @@ export function PortfolioView() {
   const [filterCategory, setFilterCategory] = useState('all')
   const [showNewDialog, setShowNewDialog] = useState(false)
   const [aiLoading, setAiLoading] = useState(false)
+  const [editingProject, setEditingProject] = useState<any>(null)
+  const [editForm, setEditForm] = useState({ title: '', description: '', category: 'Branding', liveUrl: '', status: 'draft', featured: false })
+  const [editSaving, setEditSaving] = useState(false)
+  const [deletingProject, setDeletingProject] = useState<any>(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
   const { toast } = useToast()
 
   const [newProject, setNewProject] = useState({
@@ -64,6 +79,40 @@ export function PortfolioView() {
       toast({ title: 'Error', description: 'Failed to load projects', variant: 'destructive' })
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handleEditProject() {
+    if (!editingProject) return
+    setEditSaving(true)
+    try {
+      const res = await fetchWithAuth('/api/projects', {
+        method: 'PUT',
+        body: JSON.stringify({ id: editingProject.id, ...editForm }),
+      })
+      const updated = await res.json()
+      setProjects((prev) => prev.map((p) => (p.id === editingProject.id ? updated : p)))
+      setEditingProject(null)
+      toast({ title: 'Project Updated', description: `"${updated.title}" has been updated.` })
+    } catch {
+      toast({ title: 'Error', description: 'Failed to update project', variant: 'destructive' })
+    } finally {
+      setEditSaving(false)
+    }
+  }
+
+  async function handleDeleteProject() {
+    if (!deletingProject) return
+    setDeleteLoading(true)
+    try {
+      await fetchWithAuth(`/api/projects?id=${deletingProject.id}`, { method: 'DELETE' })
+      setProjects((prev) => prev.filter((p) => p.id !== deletingProject.id))
+      setDeletingProject(null)
+      toast({ title: 'Project Deleted', description: `"${deletingProject.title}" has been removed.` })
+    } catch {
+      toast({ title: 'Error', description: 'Failed to delete project', variant: 'destructive' })
+    } finally {
+      setDeleteLoading(false)
     }
   }
 
@@ -326,8 +375,12 @@ export function PortfolioView() {
                       <DropdownMenuItem onClick={() => handleAITags(project.id)}>
                         <Sparkles className="w-3.5 h-3.5 mr-2" />AI Tags
                       </DropdownMenuItem>
-                      <DropdownMenuItem><Pencil className="w-3.5 h-3.5 mr-2" />Edit</DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive"><Trash2 className="w-3.5 h-3.5 mr-2" />Delete</DropdownMenuItem>
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setEditingProject(project); setEditForm({ title: project.title, description: project.description, category: project.category, liveUrl: project.liveUrl, status: project.status, featured: project.featured }) }}>
+                        <Pencil className="w-3.5 h-3.5 mr-2" />Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="text-destructive" onClick={(e) => { e.stopPropagation(); setDeletingProject(project) }}>
+                        <Trash2 className="w-3.5 h-3.5 mr-2" />Delete
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -351,8 +404,12 @@ export function PortfolioView() {
                           <DropdownMenuItem onClick={() => handleAITags(project.id)}>
                             <Sparkles className="w-3.5 h-3.5 mr-2" />AI Tags
                           </DropdownMenuItem>
-                          <DropdownMenuItem><Pencil className="w-3.5 h-3.5 mr-2" />Edit</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive"><Trash2 className="w-3.5 h-3.5 mr-2" />Delete</DropdownMenuItem>
+                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setEditingProject(project); setEditForm({ title: project.title, description: project.description, category: project.category, liveUrl: project.liveUrl, status: project.status, featured: project.featured }) }}>
+                            <Pencil className="w-3.5 h-3.5 mr-2" />Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive" onClick={(e) => { e.stopPropagation(); setDeletingProject(project) }}>
+                            <Trash2 className="w-3.5 h-3.5 mr-2" />Delete
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -374,6 +431,104 @@ export function PortfolioView() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Edit Project Dialog */}
+      <Dialog open={!!editingProject} onOpenChange={(open) => { if (!open) setEditingProject(null) }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-base">Edit Project</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-1">
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Title</Label>
+              <Input
+                className="h-9 text-[13px]"
+                value={editForm.title}
+                onChange={(e) => setEditForm((p) => ({ ...p, title: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Description</Label>
+              <Textarea
+                className="text-[13px] min-h-[80px]"
+                value={editForm.description}
+                onChange={(e) => setEditForm((p) => ({ ...p, description: e.target.value }))}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-[13px]">Category</Label>
+                <Select value={editForm.category} onValueChange={(v) => setEditForm((p) => ({ ...p, category: v }))}>
+                  <SelectTrigger className="h-9 text-[13px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {categories.map((c) => (
+                      <SelectItem key={c} value={c} className="text-[13px]">{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[13px]">Status</Label>
+                <Select value={editForm.status} onValueChange={(v) => setEditForm((p) => ({ ...p, status: v }))}>
+                  <SelectTrigger className="h-9 text-[13px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="draft" className="text-[13px]">Draft</SelectItem>
+                    <SelectItem value="published" className="text-[13px]">Published</SelectItem>
+                    <SelectItem value="archived" className="text-[13px]">Archived</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Live URL</Label>
+              <Input
+                placeholder="https://..."
+                className="h-9 text-[13px]"
+                value={editForm.liveUrl}
+                onChange={(e) => setEditForm((p) => ({ ...p, liveUrl: e.target.value }))}
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label className="text-[13px]" htmlFor="edit-featured">Featured</Label>
+              <Switch
+                id="edit-featured"
+                checked={editForm.featured}
+                onCheckedChange={(checked) => setEditForm((p) => ({ ...p, featured: checked }))}
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-1">
+              <Button variant="ghost" size="sm" className="h-8 text-[13px]" onClick={() => setEditingProject(null)}>Cancel</Button>
+              <Button size="sm" className="h-8 text-[13px]" onClick={handleEditProject} disabled={!editForm.title || editSaving}>
+                {editSaving && <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />}
+                Save
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Project Confirmation */}
+      <AlertDialog open={!!deletingProject} onOpenChange={(open) => { if (!open) setDeletingProject(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base">Delete Project</AlertDialogTitle>
+            <AlertDialogDescription className="text-[13px]">
+              Are you sure you want to delete &ldquo;{deletingProject?.title}&rdquo;? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-8 text-[13px]">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="h-8 text-[13px] bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={(e) => { e.preventDefault(); handleDeleteProject() }}
+              disabled={deleteLoading}
+            >
+              {deleteLoading && <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

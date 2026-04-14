@@ -20,6 +20,9 @@ import {
   Search,
   X,
   Circle,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -28,6 +31,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useToast } from '@/hooks/use-toast'
@@ -46,6 +52,11 @@ export function PitchDecksView() {
   const [search, setSearch] = useState('')
   const [showNewDialog, setShowNewDialog] = useState(false)
   const [aiLoading, setAiLoading] = useState(false)
+  const [editingPitch, setEditingPitch] = useState<any>(null)
+  const [editForm, setEditForm] = useState<any>({})
+  const [editSaving, setEditSaving] = useState(false)
+  const [deletingPitch, setDeletingPitch] = useState<any>(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
   const { toast } = useToast()
 
   const [newPitch, setNewPitch] = useState({
@@ -63,6 +74,64 @@ export function PitchDecksView() {
       .catch(() => toast({ title: 'Error', description: 'Failed to load', variant: 'destructive' }))
       .finally(() => setLoading(false))
   }, [])
+
+  function handleOpenEdit(pitch: any) {
+    setEditForm({
+      title: pitch.title || '',
+      clientName: pitch.clientName || '',
+      subtitle: pitch.subtitle || '',
+      problem: pitch.problem || '',
+      solution: pitch.solution || '',
+      approach: pitch.approach || '',
+      timeline: pitch.timeline || '',
+      investment: pitch.investment || '',
+      status: pitch.status || 'draft',
+      deliverables: Array.isArray(JSON.parse(pitch.deliverables || '[]'))
+        ? (JSON.parse(pitch.deliverables || '[]') as string[]).join('\n')
+        : pitch.deliverables || '',
+    })
+    setEditingPitch(pitch)
+  }
+
+  async function handleSaveEdit() {
+    if (!editingPitch) return
+    setEditSaving(true)
+    try {
+      const deliverablesStr = editForm.deliverables || ''
+      const deliverablesArr = deliverablesStr
+        .split('\n')
+        .map((s: string) => s.trim())
+        .filter(Boolean)
+      const res = await fetchWithAuth('/api/pitch-decks', {
+        method: 'PUT',
+        body: JSON.stringify({ id: editingPitch.id, ...editForm, deliverables: JSON.stringify(deliverablesArr) }),
+      })
+      if (!res.ok) throw new Error()
+      setPitchDecks((prev) => prev.map((p) => (p.id === editingPitch.id ? { ...p, ...editForm, deliverables: JSON.stringify(deliverablesArr) } : p)))
+      setEditingPitch(null)
+      toast({ title: 'Updated', description: 'Proposal updated successfully.' })
+    } catch {
+      toast({ title: 'Error', description: 'Failed to update proposal.', variant: 'destructive' })
+    } finally {
+      setEditSaving(false)
+    }
+  }
+
+  async function handleDelete() {
+    if (!deletingPitch) return
+    setDeleteLoading(true)
+    try {
+      const res = await fetchWithAuth(`/api/pitch-decks?id=${deletingPitch.id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error()
+      setPitchDecks((prev) => prev.filter((p) => p.id !== deletingPitch.id))
+      setDeletingPitch(null)
+      toast({ title: 'Deleted', description: 'Proposal deleted.' })
+    } catch {
+      toast({ title: 'Error', description: 'Failed to delete proposal.', variant: 'destructive' })
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
 
   async function handleAIGenerate() {
     if (!newPitch.title || !newPitch.clientName) return
@@ -214,6 +283,21 @@ export function PitchDecksView() {
                   <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 h-5 border-0 flex-shrink-0 ${sc.bg} ${sc.text}`}>
                     {pitch.status}
                   </Badge>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <MoreHorizontal className="w-3.5 h-3.5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-36">
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleOpenEdit(pitch) }}>
+                        <Pencil className="w-3.5 h-3.5 mr-2" /> Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setDeletingPitch(pitch) }} className="text-destructive focus:text-destructive">
+                        <Trash2 className="w-3.5 h-3.5 mr-2" /> Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-muted-foreground transition-colors flex-shrink-0" />
                 </motion.div>
               )
@@ -221,6 +305,97 @@ export function PitchDecksView() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editingPitch} onOpenChange={(open) => { if (!open) setEditingPitch(null) }}>
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-base">Edit Proposal</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-1">
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Title</Label>
+              <Input className="h-9 text-[13px]" value={editForm.title || ''} onChange={(e) => setEditForm((f: any) => ({ ...f, title: e.target.value }))} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-[13px]">Client Name</Label>
+                <Input className="h-9 text-[13px]" value={editForm.clientName || ''} onChange={(e) => setEditForm((f: any) => ({ ...f, clientName: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[13px]">Subtitle</Label>
+                <Input className="h-9 text-[13px]" value={editForm.subtitle || ''} onChange={(e) => setEditForm((f: any) => ({ ...f, subtitle: e.target.value }))} />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Status</Label>
+              <Select value={editForm.status || 'draft'} onValueChange={(v) => setEditForm((f: any) => ({ ...f, status: v }))}>
+                <SelectTrigger className="h-9 text-[13px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="sent">Sent</SelectItem>
+                  <SelectItem value="won">Won</SelectItem>
+                  <SelectItem value="lost">Lost</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Problem</Label>
+              <Textarea className="text-[13px] min-h-[80px]" value={editForm.problem || ''} onChange={(e) => setEditForm((f: any) => ({ ...f, problem: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Solution</Label>
+              <Textarea className="text-[13px] min-h-[80px]" value={editForm.solution || ''} onChange={(e) => setEditForm((f: any) => ({ ...f, solution: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Approach</Label>
+              <Textarea className="text-[13px] min-h-[80px]" value={editForm.approach || ''} onChange={(e) => setEditForm((f: any) => ({ ...f, approach: e.target.value }))} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-[13px]">Timeline</Label>
+                <Input className="h-9 text-[13px]" value={editForm.timeline || ''} onChange={(e) => setEditForm((f: any) => ({ ...f, timeline: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[13px]">Investment</Label>
+                <Input className="h-9 text-[13px]" value={editForm.investment || ''} onChange={(e) => setEditForm((f: any) => ({ ...f, investment: e.target.value }))} />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Deliverables <span className="text-muted-foreground">(one per line)</span></Label>
+              <Textarea className="text-[13px] min-h-[80px]" value={editForm.deliverables || ''} onChange={(e) => setEditForm((f: any) => ({ ...f, deliverables: e.target.value }))} placeholder="Brand guidelines&#10;Website design&#10;Social media kit" />
+            </div>
+            <div className="flex gap-2 pt-2">
+              <Button onClick={handleSaveEdit} disabled={editSaving} className="flex-1 h-9 text-[13px]" size="sm">
+                {editSaving && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />}
+                Save
+              </Button>
+              <Button variant="outline" onClick={() => setEditingPitch(null)} className="h-9 text-[13px]" size="sm">
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deletingPitch} onOpenChange={(open) => { if (!open) setDeletingPitch(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base">Delete Proposal</AlertDialogTitle>
+            <AlertDialogDescription className="text-[13px]">
+              Are you sure you want to delete &quot;{deletingPitch?.title}&quot;? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="text-[13px]">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={deleteLoading} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 text-[13px]">
+              {deleteLoading && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
@@ -229,6 +404,12 @@ export function PitchDeckDetailView() {
   const { selectedId, setView } = useAppStore()
   const [pitch, setPitch] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [editingPitch, setEditingPitch] = useState<any>(null)
+  const [editForm, setEditForm] = useState<any>({})
+  const [editSaving, setEditSaving] = useState(false)
+  const [deletingPitch, setDeletingPitch] = useState<any>(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const { toast } = useToast()
 
   useEffect(() => {
     if (!selectedId) return
@@ -237,6 +418,62 @@ export function PitchDeckDetailView() {
       .then((data) => setPitch(data.find((p: any) => p.id === selectedId)))
       .finally(() => setLoading(false))
   }, [selectedId])
+
+  function handleOpenEdit() {
+    if (!pitch) return
+    setEditForm({
+      title: pitch.title || '',
+      clientName: pitch.clientName || '',
+      subtitle: pitch.subtitle || '',
+      problem: pitch.problem || '',
+      solution: pitch.solution || '',
+      approach: pitch.approach || '',
+      timeline: pitch.timeline || '',
+      investment: pitch.investment || '',
+      status: pitch.status || 'draft',
+      deliverables: Array.isArray(JSON.parse(pitch.deliverables || '[]'))
+        ? (JSON.parse(pitch.deliverables || '[]') as string[]).join('\n')
+        : pitch.deliverables || '',
+    })
+    setEditingPitch(pitch)
+  }
+
+  async function handleSaveEdit() {
+    if (!editingPitch) return
+    setEditSaving(true)
+    try {
+      const deliverablesStr = editForm.deliverables || ''
+      const deliverablesArr = deliverablesStr.split('\n').map((s: string) => s.trim()).filter(Boolean)
+      const res = await fetchWithAuth('/api/pitch-decks', {
+        method: 'PUT',
+        body: JSON.stringify({ id: editingPitch.id, ...editForm, deliverables: JSON.stringify(deliverablesArr) }),
+      })
+      if (!res.ok) throw new Error()
+      setPitch((prev: any) => ({ ...prev, ...editForm, deliverables: JSON.stringify(deliverablesArr) }))
+      setEditingPitch(null)
+      toast({ title: 'Updated', description: 'Proposal updated successfully.' })
+    } catch {
+      toast({ title: 'Error', description: 'Failed to update proposal.', variant: 'destructive' })
+    } finally {
+      setEditSaving(false)
+    }
+  }
+
+  async function handleDelete() {
+    if (!deletingPitch) return
+    setDeleteLoading(true)
+    try {
+      const res = await fetchWithAuth(`/api/pitch-decks?id=${deletingPitch.id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error()
+      setDeletingPitch(null)
+      toast({ title: 'Deleted', description: 'Proposal deleted.' })
+      setView('pitch-decks')
+    } catch {
+      toast({ title: 'Error', description: 'Failed to delete proposal.', variant: 'destructive' })
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
 
   if (loading) {
     return <div className="space-y-4">{[...Array(4)].map((_, i) => <div key={i} className="h-24 bg-muted/30 rounded-lg animate-pulse" />)}</div>
@@ -262,7 +499,7 @@ export function PitchDeckDetailView() {
 
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
-        <div>
+        <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2">
             <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 h-5 border-0 ${sc.bg} ${sc.text}`}>
               {pitch.status}
@@ -273,6 +510,14 @@ export function PitchDeckDetailView() {
           </div>
           <h1 className="text-xl font-semibold tracking-tight leading-tight">{pitch.title}</h1>
           {pitch.subtitle && <p className="text-[14px] text-muted-foreground mt-1">{pitch.subtitle}</p>}
+        </div>
+        <div className="flex items-center gap-2 ml-auto flex-shrink-0">
+          <Button variant="ghost" size="sm" className="h-7 text-[12px]" onClick={handleOpenEdit}>
+            <Pencil className="w-3 h-3 mr-1" />Edit
+          </Button>
+          <Button variant="ghost" size="sm" className="h-7 text-[12px] text-destructive hover:text-destructive" onClick={() => setDeletingPitch(pitch)}>
+            <Trash2 className="w-3 h-3 mr-1" />Delete
+          </Button>
         </div>
       </div>
 
@@ -370,6 +615,97 @@ export function PitchDeckDetailView() {
           <Presentation className="w-3.5 h-3.5 mr-1.5" /> Export PDF
         </Button>
       </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editingPitch} onOpenChange={(open) => { if (!open) setEditingPitch(null) }}>
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-base">Edit Proposal</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-1">
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Title</Label>
+              <Input className="h-9 text-[13px]" value={editForm.title || ''} onChange={(e) => setEditForm((f: any) => ({ ...f, title: e.target.value }))} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-[13px]">Client Name</Label>
+                <Input className="h-9 text-[13px]" value={editForm.clientName || ''} onChange={(e) => setEditForm((f: any) => ({ ...f, clientName: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[13px]">Subtitle</Label>
+                <Input className="h-9 text-[13px]" value={editForm.subtitle || ''} onChange={(e) => setEditForm((f: any) => ({ ...f, subtitle: e.target.value }))} />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Status</Label>
+              <Select value={editForm.status || 'draft'} onValueChange={(v) => setEditForm((f: any) => ({ ...f, status: v }))}>
+                <SelectTrigger className="h-9 text-[13px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="sent">Sent</SelectItem>
+                  <SelectItem value="won">Won</SelectItem>
+                  <SelectItem value="lost">Lost</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Problem</Label>
+              <Textarea className="text-[13px] min-h-[80px]" value={editForm.problem || ''} onChange={(e) => setEditForm((f: any) => ({ ...f, problem: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Solution</Label>
+              <Textarea className="text-[13px] min-h-[80px]" value={editForm.solution || ''} onChange={(e) => setEditForm((f: any) => ({ ...f, solution: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Approach</Label>
+              <Textarea className="text-[13px] min-h-[80px]" value={editForm.approach || ''} onChange={(e) => setEditForm((f: any) => ({ ...f, approach: e.target.value }))} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-[13px]">Timeline</Label>
+                <Input className="h-9 text-[13px]" value={editForm.timeline || ''} onChange={(e) => setEditForm((f: any) => ({ ...f, timeline: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[13px]">Investment</Label>
+                <Input className="h-9 text-[13px]" value={editForm.investment || ''} onChange={(e) => setEditForm((f: any) => ({ ...f, investment: e.target.value }))} />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Deliverables <span className="text-muted-foreground">(one per line)</span></Label>
+              <Textarea className="text-[13px] min-h-[80px]" value={editForm.deliverables || ''} onChange={(e) => setEditForm((f: any) => ({ ...f, deliverables: e.target.value }))} placeholder="Brand guidelines&#10;Website design&#10;Social media kit" />
+            </div>
+            <div className="flex gap-2 pt-2">
+              <Button onClick={handleSaveEdit} disabled={editSaving} className="flex-1 h-9 text-[13px]" size="sm">
+                {editSaving && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />}
+                Save
+              </Button>
+              <Button variant="outline" onClick={() => setEditingPitch(null)} className="h-9 text-[13px]" size="sm">
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deletingPitch} onOpenChange={(open) => { if (!open) setDeletingPitch(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base">Delete Proposal</AlertDialogTitle>
+            <AlertDialogDescription className="text-[13px]">
+              Are you sure you want to delete &quot;{deletingPitch?.title}&quot;? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="text-[13px]">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={deleteLoading} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 text-[13px]">
+              {deleteLoading && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

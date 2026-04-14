@@ -17,12 +17,17 @@ import {
   Search,
   X,
   Plus,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
@@ -39,6 +44,65 @@ export function CaseStudiesView() {
   const { toast } = useToast()
 
   const [newCS, setNewCS] = useState({ title: '' })
+  const [editingCS, setEditingCS] = useState<any>(null)
+  const [editForm, setEditForm] = useState({ title: '', subtitle: '', challenge: '', solution: '', results: '', testimonial: '', testimonialBy: '', status: 'draft' })
+  const [editSaving, setEditSaving] = useState(false)
+  const [deletingCS, setDeletingCS] = useState<any>(null)
+  const [deleteSaving, setDeleteSaving] = useState(false)
+
+  function handleEdit(cs: any) {
+    setEditingCS(cs)
+    setEditForm({
+      title: cs.title || '',
+      subtitle: cs.subtitle || '',
+      challenge: cs.challenge || '',
+      solution: cs.solution || '',
+      results: cs.results || '',
+      testimonial: cs.testimonial || '',
+      testimonialBy: cs.testimonialBy || '',
+      status: cs.status || 'draft',
+    })
+  }
+
+  function handleDelete(cs: any) {
+    setDeletingCS(cs)
+  }
+
+  async function handleSaveEdit() {
+    if (!editingCS) return
+    setEditSaving(true)
+    try {
+      const res = await fetchWithAuth('/api/case-studies', {
+        method: 'PUT',
+        body: JSON.stringify({ id: editingCS.id, ...editForm }),
+      })
+      if (!res.ok) throw new Error('Update failed')
+      const updated = await res.json()
+      setCaseStudies((prev) => prev.map((cs) => (cs.id === updated.id ? { ...cs, ...updated } : cs)))
+      setEditingCS(null)
+      toast({ title: 'Updated', description: 'Case study saved successfully.' })
+    } catch {
+      toast({ title: 'Error', description: 'Failed to update case study', variant: 'destructive' })
+    } finally {
+      setEditSaving(false)
+    }
+  }
+
+  async function handleConfirmDelete() {
+    if (!deletingCS) return
+    setDeleteSaving(true)
+    try {
+      const res = await fetchWithAuth(`/api/case-studies?id=${deletingCS.id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Delete failed')
+      setCaseStudies((prev) => prev.filter((cs) => cs.id !== deletingCS.id))
+      setDeletingCS(null)
+      toast({ title: 'Deleted', description: 'Case study removed.' })
+    } catch {
+      toast({ title: 'Error', description: 'Failed to delete case study', variant: 'destructive' })
+    } finally {
+      setDeleteSaving(false)
+    }
+  }
 
   useEffect(() => {
     fetchWithAuth('/api/case-studies')
@@ -189,12 +253,140 @@ export function CaseStudiesView() {
                 >
                   {cs.status}
                 </Badge>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                    <button className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 flex items-center justify-center rounded hover:bg-accent">
+                      <MoreHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEdit(cs) }}>
+                      <Pencil className="w-3.5 h-3.5 mr-2" />Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem variant="destructive" onClick={(e) => { e.stopPropagation(); handleDelete(cs) }}>
+                      <Trash2 className="w-3.5 h-3.5 mr-2" />Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-muted-foreground transition-colors flex-shrink-0" />
               </motion.div>
             ))}
           </div>
         )}
       </AnimatePresence>
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editingCS} onOpenChange={(open) => !open && setEditingCS(null)}>
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-base">Edit Case Study</DialogTitle>
+            <DialogDescription className="text-[13px] text-muted-foreground">Update the case study details below.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-1">
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Title</Label>
+              <Input
+                className="h-9 text-[13px]"
+                value={editForm.title}
+                onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Subtitle</Label>
+              <Input
+                className="h-9 text-[13px]"
+                value={editForm.subtitle}
+                onChange={(e) => setEditForm((f) => ({ ...f, subtitle: e.target.value }))}
+                placeholder="Optional subtitle"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Status</Label>
+              <Select value={editForm.status} onValueChange={(val) => setEditForm((f) => ({ ...f, status: val }))}>
+                <SelectTrigger className="h-9 text-[13px] w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="published">Published</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Challenge</Label>
+              <Textarea
+                className="text-[13px] min-h-[80px]"
+                value={editForm.challenge}
+                onChange={(e) => setEditForm((f) => ({ ...f, challenge: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Solution</Label>
+              <Textarea
+                className="text-[13px] min-h-[80px]"
+                value={editForm.solution}
+                onChange={(e) => setEditForm((f) => ({ ...f, solution: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Results</Label>
+              <Textarea
+                className="text-[13px] min-h-[80px]"
+                value={editForm.results}
+                onChange={(e) => setEditForm((f) => ({ ...f, results: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Testimonial</Label>
+              <Textarea
+                className="text-[13px] min-h-[60px]"
+                value={editForm.testimonial}
+                onChange={(e) => setEditForm((f) => ({ ...f, testimonial: e.target.value }))}
+                placeholder="Optional client testimonial"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Testimonial By</Label>
+              <Input
+                className="h-9 text-[13px]"
+                value={editForm.testimonialBy}
+                onChange={(e) => setEditForm((f) => ({ ...f, testimonialBy: e.target.value }))}
+                placeholder="e.g., Jane Doe, CEO"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2 pt-2">
+            <Button variant="ghost" size="sm" className="h-8 text-[13px]" onClick={() => setEditingCS(null)} disabled={editSaving}>
+              Cancel
+            </Button>
+            <Button size="sm" className="h-8 text-[13px]" onClick={handleSaveEdit} disabled={editSaving}>
+              {editSaving && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />}
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deletingCS} onOpenChange={(open) => !open && setDeletingCS(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-base">Delete Case Study</DialogTitle>
+            <DialogDescription className="text-[13px] text-muted-foreground">
+              Are you sure you want to delete &ldquo;{deletingCS?.title}&rdquo;? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 pt-2">
+            <Button variant="ghost" size="sm" className="h-8 text-[13px]" onClick={() => setDeletingCS(null)} disabled={deleteSaving}>
+              Cancel
+            </Button>
+            <Button variant="destructive" size="sm" className="h-8 text-[13px]" onClick={handleConfirmDelete} disabled={deleteSaving}>
+              {deleteSaving && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />}
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
@@ -205,6 +397,64 @@ export function CaseStudyDetailView() {
   const [loading, setLoading] = useState(true)
   const [aiLoading, setAiLoading] = useState(false)
   const { toast } = useToast()
+
+  const [editingCS, setEditingCS] = useState<any>(null)
+  const [editForm, setEditForm] = useState({ title: '', subtitle: '', challenge: '', solution: '', results: '', testimonial: '', testimonialBy: '', status: 'draft' })
+  const [editSaving, setEditSaving] = useState(false)
+  const [deletingCS, setDeletingCS] = useState<any>(null)
+  const [deleteSaving, setDeleteSaving] = useState(false)
+
+  function handleEditFromDetail() {
+    if (!caseStudy) return
+    setEditingCS(caseStudy)
+    setEditForm({
+      title: caseStudy.title || '',
+      subtitle: caseStudy.subtitle || '',
+      challenge: caseStudy.challenge || '',
+      solution: caseStudy.solution || '',
+      results: caseStudy.results || '',
+      testimonial: caseStudy.testimonial || '',
+      testimonialBy: caseStudy.testimonialBy || '',
+      status: caseStudy.status || 'draft',
+    })
+  }
+
+  async function handleSaveEditFromDetail() {
+    if (!editingCS) return
+    setEditSaving(true)
+    try {
+      const res = await fetchWithAuth('/api/case-studies', {
+        method: 'PUT',
+        body: JSON.stringify({ id: editingCS.id, ...editForm }),
+      })
+      if (!res.ok) throw new Error('Update failed')
+      const updated = await res.json()
+      setCaseStudy(updated)
+      setEditingCS(null)
+      toast({ title: 'Updated', description: 'Case study saved successfully.' })
+      setView('case-studies')
+    } catch {
+      toast({ title: 'Error', description: 'Failed to update case study', variant: 'destructive' })
+    } finally {
+      setEditSaving(false)
+    }
+  }
+
+  async function handleConfirmDeleteFromDetail() {
+    if (!deletingCS) return
+    setDeleteSaving(true)
+    try {
+      const res = await fetchWithAuth(`/api/case-studies?id=${deletingCS.id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Delete failed')
+      setDeletingCS(null)
+      toast({ title: 'Deleted', description: 'Case study removed.' })
+      setView('case-studies')
+    } catch {
+      toast({ title: 'Error', description: 'Failed to delete case study', variant: 'destructive' })
+    } finally {
+      setDeleteSaving(false)
+    }
+  }
 
   useEffect(() => {
     if (!selectedId) return
@@ -270,6 +520,14 @@ export function CaseStudyDetailView() {
               {caseStudy.project.title}
             </Badge>
           )}
+          <div className="flex items-center gap-1 ml-auto">
+            <Button variant="ghost" size="sm" className="h-7 text-[12px]" onClick={handleEditFromDetail}>
+              <Pencil className="w-3 h-3 mr-1" />Edit
+            </Button>
+            <Button variant="ghost" size="sm" className="h-7 text-[12px] text-destructive hover:text-destructive" onClick={() => setDeletingCS(caseStudy)}>
+              <Trash2 className="w-3 h-3 mr-1" />Delete
+            </Button>
+          </div>
         </div>
         <h1 className="text-xl font-semibold tracking-tight leading-tight">{caseStudy.title}</h1>
         {caseStudy.subtitle && (
@@ -350,6 +608,119 @@ export function CaseStudyDetailView() {
           </div>
         </motion.div>
       )}
+
+      {/* Edit Dialog (Detail View) */}
+      <Dialog open={!!editingCS} onOpenChange={(open) => !open && setEditingCS(null)}>
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-base">Edit Case Study</DialogTitle>
+            <DialogDescription className="text-[13px] text-muted-foreground">Update the case study details below.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-1">
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Title</Label>
+              <Input
+                className="h-9 text-[13px]"
+                value={editForm.title}
+                onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Subtitle</Label>
+              <Input
+                className="h-9 text-[13px]"
+                value={editForm.subtitle}
+                onChange={(e) => setEditForm((f) => ({ ...f, subtitle: e.target.value }))}
+                placeholder="Optional subtitle"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Status</Label>
+              <Select value={editForm.status} onValueChange={(val) => setEditForm((f) => ({ ...f, status: val }))}>
+                <SelectTrigger className="h-9 text-[13px] w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="published">Published</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Challenge</Label>
+              <Textarea
+                className="text-[13px] min-h-[80px]"
+                value={editForm.challenge}
+                onChange={(e) => setEditForm((f) => ({ ...f, challenge: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Solution</Label>
+              <Textarea
+                className="text-[13px] min-h-[80px]"
+                value={editForm.solution}
+                onChange={(e) => setEditForm((f) => ({ ...f, solution: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Results</Label>
+              <Textarea
+                className="text-[13px] min-h-[80px]"
+                value={editForm.results}
+                onChange={(e) => setEditForm((f) => ({ ...f, results: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Testimonial</Label>
+              <Textarea
+                className="text-[13px] min-h-[60px]"
+                value={editForm.testimonial}
+                onChange={(e) => setEditForm((f) => ({ ...f, testimonial: e.target.value }))}
+                placeholder="Optional client testimonial"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Testimonial By</Label>
+              <Input
+                className="h-9 text-[13px]"
+                value={editForm.testimonialBy}
+                onChange={(e) => setEditForm((f) => ({ ...f, testimonialBy: e.target.value }))}
+                placeholder="e.g., Jane Doe, CEO"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2 pt-2">
+            <Button variant="ghost" size="sm" className="h-8 text-[13px]" onClick={() => setEditingCS(null)} disabled={editSaving}>
+              Cancel
+            </Button>
+            <Button size="sm" className="h-8 text-[13px]" onClick={handleSaveEditFromDetail} disabled={editSaving}>
+              {editSaving && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />}
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog (Detail View) */}
+      <Dialog open={!!deletingCS} onOpenChange={(open) => !open && setDeletingCS(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-base">Delete Case Study</DialogTitle>
+            <DialogDescription className="text-[13px] text-muted-foreground">
+              Are you sure you want to delete &ldquo;{deletingCS?.title}&rdquo;? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 pt-2">
+            <Button variant="ghost" size="sm" className="h-8 text-[13px]" onClick={() => setDeletingCS(null)} disabled={deleteSaving}>
+              Cancel
+            </Button>
+            <Button variant="destructive" size="sm" className="h-8 text-[13px]" onClick={handleConfirmDeleteFromDetail} disabled={deleteSaving}>
+              {deleteSaving && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />}
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

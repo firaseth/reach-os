@@ -16,6 +16,9 @@ import {
   Search,
   Circle,
   X,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -24,6 +27,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -47,6 +53,12 @@ export function ProjectRoomsView() {
 
   const [newRoom, setNewRoom] = useState({ name: '', clientName: '', clientEmail: '', description: '' })
 
+  const [editingRoom, setEditingRoom] = useState<any>(null)
+  const [editForm, setEditForm] = useState({ name: '', clientName: '', clientEmail: '', description: '', status: 'active', phase: 'discovery' })
+  const [editSaving, setEditSaving] = useState(false)
+  const [deletingRoom, setDeletingRoom] = useState<any>(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+
   useEffect(() => {
     fetchWithAuth('/api/client-rooms')
       .then((r) => r.json())
@@ -68,6 +80,62 @@ export function ProjectRoomsView() {
       toast({ title: 'Room Created', description: `"${room.name}" ready.` })
     } catch {
       toast({ title: 'Error', variant: 'destructive' })
+    }
+  }
+
+  function handleOpenEdit(room: any) {
+    setEditingRoom(room)
+    setEditForm({
+      name: room.name,
+      clientName: room.clientName,
+      clientEmail: room.clientEmail || '',
+      description: room.description || '',
+      status: room.status || 'active',
+      phase: room.phase || 'discovery',
+    })
+  }
+
+  async function handleEditSave() {
+    if (!editingRoom) return
+    setEditSaving(true)
+    try {
+      const res = await fetchWithAuth('/api/client-rooms', {
+        method: 'PUT',
+        body: JSON.stringify({ id: editingRoom.id, ...editForm }),
+      })
+      if (res.ok) {
+        const updated = await res.json()
+        setRooms((prev) => prev.map((r) => (r.id === editingRoom.id ? { ...r, ...updated } : r)))
+        setEditingRoom(null)
+        toast({ title: 'Room Updated', description: `"${updated.name}" saved.` })
+      } else {
+        toast({ title: 'Error', description: 'Failed to update room', variant: 'destructive' })
+      }
+    } catch {
+      toast({ title: 'Error', variant: 'destructive' })
+    } finally {
+      setEditSaving(false)
+    }
+  }
+
+  async function handleDelete() {
+    if (!deletingRoom) return
+    setDeleteLoading(true)
+    try {
+      const res = await fetchWithAuth(`/api/client-rooms?id=${deletingRoom.id}`, {
+        method: 'DELETE',
+      })
+      if (res.ok) {
+        setRooms((prev) => prev.filter((r) => r.id !== deletingRoom.id))
+        setDeletingRoom(null)
+        toast({ title: 'Room Deleted', description: `"${deletingRoom.name}" has been removed.` })
+      } else {
+        toast({ title: 'Error', description: 'Failed to delete room', variant: 'destructive' })
+      }
+    } catch {
+      toast({ title: 'Error', variant: 'destructive' })
+    } finally {
+      setDeleteLoading(false)
     }
   }
 
@@ -166,6 +234,31 @@ export function ProjectRoomsView() {
                       <span className={`text-[11px] capitalize ${phase.text}`}>{room.phase}</span>
                     </div>
                   </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreHorizontal className="w-3.5 h-3.5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-36">
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleOpenEdit(room) }}>
+                        <Pencil className="w-3.5 h-3.5 mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={(e) => { e.stopPropagation(); setDeletingRoom(room) }}
+                      >
+                        <Trash2 className="w-3.5 h-3.5 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <div className="flex items-center gap-3 text-[11px] text-muted-foreground/50 flex-shrink-0 ml-auto">
                     <span className="flex items-center gap-1">
                       <MessageSquare className="w-3 h-3" />
@@ -182,6 +275,111 @@ export function ProjectRoomsView() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Edit Room Dialog */}
+      <Dialog open={!!editingRoom} onOpenChange={(open) => !open && setEditingRoom(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base">Edit Room</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-1">
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Project Name</Label>
+              <Input
+                className="h-9 text-[13px]"
+                value={editForm.name}
+                onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-[13px]">Client</Label>
+                <Input
+                  className="h-9 text-[13px]"
+                  value={editForm.clientName}
+                  onChange={(e) => setEditForm((p) => ({ ...p, clientName: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[13px]">Email</Label>
+                <Input
+                  className="h-9 text-[13px]"
+                  value={editForm.clientEmail}
+                  onChange={(e) => setEditForm((p) => ({ ...p, clientEmail: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Description</Label>
+              <Textarea
+                className="text-[13px] min-h-[60px]"
+                value={editForm.description}
+                onChange={(e) => setEditForm((p) => ({ ...p, description: e.target.value }))}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-[13px]">Status</Label>
+                <Select value={editForm.status} onValueChange={(v) => setEditForm((p) => ({ ...p, status: v }))}>
+                  <SelectTrigger className="h-9 text-[13px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="archived">Archived</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[13px]">Phase</Label>
+                <Select value={editForm.phase} onValueChange={(v) => setEditForm((p) => ({ ...p, phase: v }))}>
+                  <SelectTrigger className="h-9 text-[13px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="discovery">Discovery</SelectItem>
+                    <SelectItem value="design">Design</SelectItem>
+                    <SelectItem value="development">Development</SelectItem>
+                    <SelectItem value="delivery">Delivery</SelectItem>
+                    <SelectItem value="review">Review</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <Button variant="outline" className="flex-1 h-9 text-[13px]" onClick={() => setEditingRoom(null)}>Cancel</Button>
+              <Button className="flex-1 h-9 text-[13px]" onClick={handleEditSave} disabled={!editForm.name || editSaving}>
+                {editSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : null}
+                Save
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deletingRoom} onOpenChange={(open) => !open && setDeletingRoom(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base">Delete Room</AlertDialogTitle>
+            <AlertDialogDescription className="text-[13px]">
+              Are you sure you want to delete room &quot;{deletingRoom?.name}&quot;? This will also delete all messages and deliverables in this room.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="text-[13px]">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 text-[13px]"
+              onClick={handleDelete}
+              disabled={deleteLoading}
+            >
+              {deleteLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : null}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
@@ -195,6 +393,12 @@ export function ProjectRoomDetailView() {
   const [activeTab, setActiveTab] = useState<'messages' | 'deliverables'>('messages')
   const scrollRef = useRef<HTMLDivElement>(null)
   const { toast } = useToast()
+
+  const [editingRoom, setEditingRoom] = useState<any>(null)
+  const [editForm, setEditForm] = useState({ name: '', clientName: '', clientEmail: '', description: '', status: 'active', phase: 'discovery' })
+  const [editSaving, setEditSaving] = useState(false)
+  const [deletingRoom, setDeletingRoom] = useState<any>(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
 
   useEffect(() => {
     if (!selectedId) return
@@ -230,6 +434,63 @@ export function ProjectRoomDetailView() {
     }
   }
 
+  function handleEditFromDetail() {
+    if (!room) return
+    setEditingRoom(room)
+    setEditForm({
+      name: room.name,
+      clientName: room.clientName,
+      clientEmail: room.clientEmail || '',
+      description: room.description || '',
+      status: room.status || 'active',
+      phase: room.phase || 'discovery',
+    })
+  }
+
+  async function handleEditSave() {
+    if (!editingRoom) return
+    setEditSaving(true)
+    try {
+      const res = await fetchWithAuth('/api/client-rooms', {
+        method: 'PUT',
+        body: JSON.stringify({ id: editingRoom.id, ...editForm }),
+      })
+      if (res.ok) {
+        const updated = await res.json()
+        setRoom(updated)
+        setEditingRoom(null)
+        toast({ title: 'Room Updated', description: `"${updated.name}" saved.` })
+      } else {
+        toast({ title: 'Error', description: 'Failed to update room', variant: 'destructive' })
+      }
+    } catch {
+      toast({ title: 'Error', variant: 'destructive' })
+    } finally {
+      setEditSaving(false)
+    }
+  }
+
+  async function handleDelete() {
+    if (!deletingRoom) return
+    setDeleteLoading(true)
+    try {
+      const res = await fetchWithAuth(`/api/client-rooms?id=${deletingRoom.id}`, {
+        method: 'DELETE',
+      })
+      if (res.ok) {
+        toast({ title: 'Room Deleted', description: `"${deletingRoom.name}" has been removed.` })
+        setDeletingRoom(null)
+        setView('project-rooms')
+      } else {
+        toast({ title: 'Error', description: 'Failed to delete room', variant: 'destructive' })
+      }
+    } catch {
+      toast({ title: 'Error', variant: 'destructive' })
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
+
   if (loading) {
     return <div className="space-y-3">{[...Array(4)].map((_, i) => <div key={i} className="h-16 bg-muted/30 rounded-lg animate-pulse" />)}</div>
   }
@@ -259,7 +520,15 @@ export function ProjectRoomDetailView() {
             {room.phase}
           </Badge>
         </div>
-        <span className="text-[11px] text-muted-foreground">{room.clientName}</span>
+        <span className="text-[11px] text-muted-foreground hidden sm:inline">{room.clientName}</span>
+        <div className="flex items-center gap-1 ml-auto flex-shrink-0">
+          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground" onClick={handleEditFromDetail}>
+            <Pencil className="w-3.5 h-3.5" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeletingRoom(room)}>
+            <Trash2 className="w-3.5 h-3.5" />
+          </Button>
+        </div>
       </div>
 
       {/* Tab Switcher */}
@@ -367,6 +636,110 @@ export function ProjectRoomDetailView() {
           )}
         </div>
       )}
+      {/* Edit Room Dialog */}
+      <Dialog open={!!editingRoom} onOpenChange={(open) => !open && setEditingRoom(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base">Edit Room</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-1">
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Project Name</Label>
+              <Input
+                className="h-9 text-[13px]"
+                value={editForm.name}
+                onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-[13px]">Client</Label>
+                <Input
+                  className="h-9 text-[13px]"
+                  value={editForm.clientName}
+                  onChange={(e) => setEditForm((p) => ({ ...p, clientName: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[13px]">Email</Label>
+                <Input
+                  className="h-9 text-[13px]"
+                  value={editForm.clientEmail}
+                  onChange={(e) => setEditForm((p) => ({ ...p, clientEmail: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">Description</Label>
+              <Textarea
+                className="text-[13px] min-h-[60px]"
+                value={editForm.description}
+                onChange={(e) => setEditForm((p) => ({ ...p, description: e.target.value }))}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-[13px]">Status</Label>
+                <Select value={editForm.status} onValueChange={(v) => setEditForm((p) => ({ ...p, status: v }))}>
+                  <SelectTrigger className="h-9 text-[13px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="archived">Archived</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[13px]">Phase</Label>
+                <Select value={editForm.phase} onValueChange={(v) => setEditForm((p) => ({ ...p, phase: v }))}>
+                  <SelectTrigger className="h-9 text-[13px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="discovery">Discovery</SelectItem>
+                    <SelectItem value="design">Design</SelectItem>
+                    <SelectItem value="development">Development</SelectItem>
+                    <SelectItem value="delivery">Delivery</SelectItem>
+                    <SelectItem value="review">Review</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <Button variant="outline" className="flex-1 h-9 text-[13px]" onClick={() => setEditingRoom(null)}>Cancel</Button>
+              <Button className="flex-1 h-9 text-[13px]" onClick={handleEditSave} disabled={!editForm.name || editSaving}>
+                {editSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : null}
+                Save
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deletingRoom} onOpenChange={(open) => !open && setDeletingRoom(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base">Delete Room</AlertDialogTitle>
+            <AlertDialogDescription className="text-[13px]">
+              Are you sure you want to delete room &quot;{deletingRoom?.name}&quot;? This will also delete all messages and deliverables in this room.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="text-[13px]">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 text-[13px]"
+              onClick={handleDelete}
+              disabled={deleteLoading}
+            >
+              {deleteLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : null}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
