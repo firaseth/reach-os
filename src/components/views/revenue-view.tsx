@@ -14,6 +14,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { motion } from 'framer-motion'
+import { ExportToolbar } from '@/components/export-toolbar'
 
 export function RevenueView() {
   const [data, setData] = useState<{ incomes: any[]; expenses: any[] } | null>(null)
@@ -127,9 +128,12 @@ export function RevenueView() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">Revenue</h1>
-        <p className="text-[13px] text-muted-foreground mt-0.5">Track income, expenses, and profitability</p>
+      <div className="flex items-end justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">Revenue</h1>
+          <p className="text-[13px] text-muted-foreground mt-0.5">Track income, expenses, and profitability</p>
+        </div>
+        <ExportToolbar reportType="revenue" reportLabel="Revenue" />
       </div>
 
       {/* Stat Cards */}
@@ -160,21 +164,23 @@ export function RevenueView() {
             <h2 className="text-[13px] font-medium text-muted-foreground uppercase tracking-wider">Monthly Revenue vs Expenses</h2>
           </div>
           <div className="border border-border rounded-lg p-4">
-            <div className="flex items-end justify-between gap-[6px] h-[220px]">
-              {metrics.monthLabels.map((label, i) => {
-                const maxVal = Math.max(...metrics.incomeData, ...metrics.expenseData, 1)
-                const incH = (metrics.incomeData[i] / maxVal) * 100
-                const expH = (metrics.expenseData[i] / maxVal) * 100
-                return (
-                  <div key={label} className="flex-1 flex flex-col items-center gap-[2px]">
-                    <div className="w-full flex gap-[2px] items-end h-[180px]">
-                      <div className="flex-1 rounded-t-sm bg-primary/80 min-h-[2px]" style={{ height: `${incH}%` }} />
-                      <div className="flex-1 rounded-t-sm bg-destructive/40 min-h-[2px]" style={{ height: `${expH}%` }} />
+            <div className="overflow-x-auto -mx-1 px-1">
+              <div className="flex items-end justify-between gap-[6px] h-[220px] min-w-[500px]">
+                {metrics.monthLabels.map((label, i) => {
+                  const maxVal = Math.max(...metrics.incomeData, ...metrics.expenseData, 1)
+                  const incH = (metrics.incomeData[i] / maxVal) * 100
+                  const expH = (metrics.expenseData[i] / maxVal) * 100
+                  return (
+                    <div key={label} className="flex-1 flex flex-col items-center gap-[2px]">
+                      <div className="w-full flex gap-[2px] items-end h-[180px]">
+                        <div className="flex-1 rounded-t-sm bg-primary/80 min-h-[2px]" style={{ height: `${incH}%` }} />
+                        <div className="flex-1 rounded-t-sm bg-destructive/40 min-h-[2px]" style={{ height: `${expH}%` }} />
+                      </div>
+                      <span className="text-[9px] text-muted-foreground/50 mt-1">{label.split(' ')[0]}</span>
                     </div>
-                    <span className="text-[9px] text-muted-foreground/50 mt-1">{label.split(' ')[0]}</span>
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
             </div>
             <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border">
               <div className="flex items-center gap-1.5">
@@ -195,24 +201,26 @@ export function RevenueView() {
             <h2 className="text-[13px] font-medium text-muted-foreground uppercase tracking-wider">Monthly Profit</h2>
           </div>
           <div className="border border-border rounded-lg p-4">
-            <div className="flex items-end gap-[4px] h-[220px]">
-              {metrics.profitData.map((val, i) => {
-                const maxVal = Math.max(...metrics.profitData.map(Math.abs), 1)
-                const h = (Math.abs(val) / maxVal) * 100
-                const isPositive = val >= 0
-                return (
-                  <div key={i} className="flex-1 flex flex-col items-center justify-end h-full">
-                    <span className="text-[8px] text-muted-foreground/50 mb-1">{isPositive ? '' : ''}</span>
-                    <div
-                      className="w-full rounded-t-sm min-h-[3px]"
-                      style={{
-                        height: `${h}%`,
-                        backgroundColor: isPositive ? 'rgba(45, 212, 160, 0.6)' : 'rgba(229, 72, 77, 0.5)',
-                      }}
-                    />
-                  </div>
-                )
-              })}
+            <div className="overflow-x-auto -mx-1 px-1">
+              <div className="flex items-end gap-[4px] h-[220px] min-w-[400px]">
+                {metrics.profitData.map((val, i) => {
+                  const maxVal = Math.max(...metrics.profitData.map(Math.abs), 1)
+                  const h = (Math.abs(val) / maxVal) * 100
+                  const isPositive = val >= 0
+                  return (
+                    <div key={i} className="flex-1 flex flex-col items-center justify-end h-full">
+                      <span className="text-[8px] text-muted-foreground/50 mb-1">{isPositive ? '' : ''}</span>
+                      <div
+                        className="w-full rounded-t-sm min-h-[3px]"
+                        style={{
+                          height: `${h}%`,
+                          backgroundColor: isPositive ? 'rgba(45, 212, 160, 0.6)' : 'rgba(229, 72, 77, 0.5)',
+                        }}
+                      />
+                    </div>
+                  )
+                })}
+              </div>
             </div>
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
               <span className="text-[11px] text-muted-foreground">Avg Monthly</span>

@@ -15,6 +15,7 @@ import {
   PiggyBank,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { ExportToolbar } from '@/components/export-toolbar'
 
 export function FinanceView() {
   const [data, setData] = useState<{ incomes: any[]; expenses: any[] } | null>(null)
@@ -101,9 +102,12 @@ export function FinanceView() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">Finance</h1>
-        <p className="text-[13px] text-muted-foreground mt-0.5">Income vs cost analysis and P&L overview</p>
+      <div className="flex items-end justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">Finance</h1>
+          <p className="text-[13px] text-muted-foreground mt-0.5">Income vs cost analysis and P&L overview</p>
+        </div>
+        <ExportToolbar reportType="finance" reportLabel="Finance" />
       </div>
 
       {/* Top Metrics */}
@@ -198,7 +202,8 @@ export function FinanceView() {
       <div>
         <h2 className="text-[13px] font-medium text-muted-foreground uppercase tracking-wider mb-3">Monthly Breakdown</h2>
         <div className="border border-border rounded-lg overflow-hidden">
-          <div className="grid grid-cols-5 gap-4 px-4 py-2 border-b border-border bg-muted/20">
+          {/* Desktop table header */}
+          <div className="hidden md:grid grid-cols-5 gap-4 px-4 py-2 border-b border-border bg-muted/20">
             <span className="text-[11px] font-medium text-muted-foreground uppercase">Month</span>
             <span className="text-[11px] font-medium text-muted-foreground uppercase text-right">Income</span>
             <span className="text-[11px] font-medium text-muted-foreground uppercase text-right">Expenses</span>
@@ -206,16 +211,44 @@ export function FinanceView() {
             <span className="text-[11px] font-medium text-muted-foreground uppercase text-right">Margin</span>
           </div>
           {[...metrics.monthlyTrend].reverse().map((m) => (
-            <div key={m.date} className="grid grid-cols-5 gap-4 px-4 py-2.5 border-b border-border last:border-0 hover:bg-accent/30 transition-colors">
-              <span className="text-[13px]">{m.label}</span>
-              <span className="text-[13px] text-right">{fmt(m.income)}</span>
-              <span className="text-[13px] text-right text-rose-400/70">{fmt(m.expense)}</span>
-              <span className={`text-[13px] text-right font-medium ${m.profit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                {fmt(m.profit)}
-              </span>
-              <span className="text-[13px] text-right text-muted-foreground">
-                {m.income > 0 ? ((m.profit / m.income) * 100).toFixed(0) : '0'}%
-              </span>
+            <div key={m.date} className="hover:bg-accent/30 transition-colors">
+              {/* Desktop row */}
+              <div className="hidden md:grid grid-cols-5 gap-4 px-4 py-2.5 border-b border-border last:border-0">
+                <span className="text-[13px]">{m.label}</span>
+                <span className="text-[13px] text-right">{fmt(m.income)}</span>
+                <span className="text-[13px] text-right text-rose-400/70">{fmt(m.expense)}</span>
+                <span className={`text-[13px] text-right font-medium ${m.profit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  {fmt(m.profit)}
+                </span>
+                <span className="text-[13px] text-right text-muted-foreground">
+                  {m.income > 0 ? ((m.profit / m.income) * 100).toFixed(0) : '0'}%
+                </span>
+              </div>
+              {/* Mobile card row */}
+              <div className="md:hidden px-4 py-3 border-b border-border last:border-0">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[13px] font-medium">{m.label}</span>
+                  <span className={`text-[14px] font-semibold ${m.profit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {fmt(m.profit)}
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <span className="text-[10px] text-muted-foreground uppercase">Income</span>
+                    <p className="text-[13px] font-medium">{fmt(m.income)}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-muted-foreground uppercase">Expenses</span>
+                    <p className="text-[13px] font-medium text-rose-400/70">{fmt(m.expense)}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-muted-foreground uppercase">Margin</span>
+                    <p className="text-[13px] font-medium text-muted-foreground">
+                      {m.income > 0 ? ((m.profit / m.income) * 100).toFixed(0) : '0'}%
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           ))}
         </div>

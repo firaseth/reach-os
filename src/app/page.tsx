@@ -3,6 +3,8 @@
 import { useEffect } from 'react'
 import { useAppStore } from '@/lib/store'
 import { AppSidebar } from '@/components/app-sidebar'
+import { MobileHeader } from '@/components/mobile-header'
+import { MobileBottomNav } from '@/components/mobile-bottom-nav'
 import { DashboardView } from '@/components/views/dashboard-view'
 import { RevenueView } from '@/components/views/revenue-view'
 import { FinanceView } from '@/components/views/finance-view'
@@ -42,14 +44,23 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Mobile Header — only shows on mobile */}
+      <MobileHeader />
+
+      {/* Sidebar — different behavior on mobile vs desktop */}
       <AppSidebar />
+
       <main
         className={cn(
           'transition-all duration-200 ease-out',
-          sidebarOpen ? 'ml-[232px]' : 'ml-[52px]'
+          // Mobile: full width, padded for header and bottom nav
+          'pt-12 pb-16',
+          // Desktop: sidebar margin
+          'md:pt-0 md:pb-0',
+          sidebarOpen ? 'md:ml-[232px]' : 'md:ml-[52px]'
         )}
       >
-        <div className="p-6 lg:p-8 max-w-5xl mx-auto">
+        <div className="p-4 md:p-6 lg:p-8 max-w-5xl mx-auto">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentView}
@@ -63,6 +74,9 @@ export default function Home() {
           </AnimatePresence>
         </div>
       </main>
+
+      {/* Mobile Bottom Nav — only shows on mobile */}
+      <MobileBottomNav />
     </div>
   )
 }

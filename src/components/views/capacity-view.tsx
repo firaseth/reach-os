@@ -10,6 +10,7 @@ import {
   BarChart3,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { ExportToolbar } from '@/components/export-toolbar'
 
 export function CapacityView() {
   const [logs, setLogs] = useState<any[]>([])
@@ -76,9 +77,12 @@ export function CapacityView() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">Capacity</h1>
-        <p className="text-[13px] text-muted-foreground mt-0.5">Plan your workload and optimize utilization</p>
+      <div className="flex items-end justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">Capacity</h1>
+          <p className="text-[13px] text-muted-foreground mt-0.5">Plan your workload and optimize utilization</p>
+        </div>
+        <ExportToolbar reportType="capacity" reportLabel="Capacity" />
       </div>
 
       {/* Key Metrics */}
@@ -137,8 +141,9 @@ export function CapacityView() {
       <div>
         <h2 className="text-[13px] font-medium text-muted-foreground uppercase tracking-wider mb-3">Monthly Utilization</h2>
         <div className="border border-border rounded-lg p-4">
-          <div className="flex items-end gap-[6px] h-[200px]">
-            {metrics.monthlyData.map((m) => {
+          <div className="overflow-x-auto -mx-1 px-1">
+            <div className="flex items-end gap-[6px] h-[200px] min-w-[500px]">
+              {metrics.monthlyData.map((m) => {
               const util = parseFloat(m.utilization)
               return (
                 <div key={m.date} className="flex-1 flex flex-col items-center justify-end h-full">
@@ -157,9 +162,10 @@ export function CapacityView() {
                   <span className="text-[9px] text-muted-foreground/50 mt-1">{m.label.split(' ')[0]}</span>
                 </div>
               )
-            })}
+              })}
+            </div>
           </div>
-          <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border">
+          <div className="flex items-center gap-3 mt-3 pt-3 border-t border-border flex-wrap">
             <div className="flex items-center gap-1.5">
               <div className="w-2.5 h-2.5 rounded-sm bg-blue-500/50" />
               <span className="text-[11px] text-muted-foreground">Under-utilized (&lt;65%)</span>

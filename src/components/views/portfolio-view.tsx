@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useToast } from '@/hooks/use-toast'
+import { ExportToolbar } from '@/components/export-toolbar'
 
 const categories = ['Branding', 'Web Design', 'Print Design', 'Campaign', 'Motion', 'Photography', 'Strategy']
 
@@ -150,14 +151,16 @@ export function PortfolioView() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold tracking-tight text-foreground">Portfolio</h1>
           <p className="text-[13px] text-muted-foreground mt-0.5">
             {projects.length} project{projects.length !== 1 ? 's' : ''}
           </p>
         </div>
-        <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
+        <div className="flex items-center gap-2">
+          <ExportToolbar reportType="portfolio" reportLabel="Portfolio" />
+          <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
           <DialogTrigger asChild>
             <Button size="sm" className="h-8 text-[13px]">
               <Plus className="w-3.5 h-3.5 mr-1.5" /> New Project
@@ -227,11 +230,12 @@ export function PortfolioView() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Filters */}
       <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-xs">
+        <div className="relative flex-1 max-w-xs min-w-0">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
           <Input
             placeholder="Filter projects..."
@@ -248,12 +252,12 @@ export function PortfolioView() {
             </button>
           )}
         </div>
-        <div className="flex gap-1">
+        <div className="flex gap-1 overflow-x-auto flex-shrink-0 pb-1 -mb-1 scrollbar-none">
           {['all', ...categories.slice(0, 4)].map((c) => (
             <button
               key={c}
               onClick={() => setFilterCategory(c)}
-              className={`px-2.5 h-7 rounded-md text-[12px] font-medium transition-colors ${
+              className={`px-2.5 h-7 rounded-md text-[12px] font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
                 filterCategory === c
                   ? 'bg-primary/10 text-primary'
                   : 'text-muted-foreground hover:text-foreground hover:bg-accent'
@@ -265,7 +269,7 @@ export function PortfolioView() {
         </div>
       </div>
 
-      {/* Project List — table-like layout */}
+      {/* Project List — table-like on desktop, cards on mobile */}
       <AnimatePresence mode="wait">
         {filteredProjects.length === 0 ? (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16">
@@ -274,8 +278,8 @@ export function PortfolioView() {
           </motion.div>
         ) : (
           <div className="border border-border rounded-lg overflow-hidden">
-            {/* Header Row */}
-            <div className="grid grid-cols-[1fr_100px_120px_32px] gap-4 px-4 py-2 border-b border-border bg-muted/20">
+            {/* Desktop Header Row — hidden on mobile */}
+            <div className="hidden md:grid grid-cols-[1fr_100px_120px_32px] gap-4 px-4 py-2 border-b border-border bg-muted/20">
               <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Project</span>
               <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Category</span>
               <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Tags</span>
@@ -288,44 +292,85 @@ export function PortfolioView() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.15, delay: i * 0.02 }}
-                className="grid grid-cols-[1fr_100px_120px_32px] gap-4 items-center px-4 py-3 border-b border-border last:border-0 hover:bg-accent/50 transition-colors group"
+                className="hover:bg-accent/50 transition-colors group"
               >
-                {/* Project Info */}
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-md bg-gradient-to-br from-muted to-muted/50 flex-shrink-0" />
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      {project.featured && <Star className="w-3 h-3 text-amber-500 fill-amber-500 flex-shrink-0" />}
-                      <p className="text-[13px] font-medium truncate">{project.title}</p>
+                {/* Desktop Row */}
+                <div className="hidden md:grid grid-cols-[1fr_100px_120px_32px] gap-4 items-center px-4 py-3 border-b border-border last:border-0">
+                  {/* Project Info */}
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-8 h-8 rounded-md bg-gradient-to-br from-muted to-muted/50 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        {project.featured && <Star className="w-3 h-3 text-amber-500 fill-amber-500 flex-shrink-0" />}
+                        <p className="text-[13px] font-medium truncate">{project.title}</p>
+                      </div>
+                      <p className="text-[12px] text-muted-foreground truncate mt-px">{project.description}</p>
+                    </div>
+                  </div>
+                  {/* Category */}
+                  <span className="text-[12px] text-muted-foreground">{project.category}</span>
+                  {/* Tags */}
+                  <div className="flex gap-1 flex-wrap">
+                    {JSON.parse(project.tags || '[]').slice(0, 2).map((tag: string) => (
+                      <Badge key={tag} variant="secondary" className="text-[10px] px-1.5 py-0 h-5 bg-muted/50 text-muted-foreground border-0">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                  {/* Actions */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 flex items-center justify-center rounded hover:bg-accent">
+                        <MoreHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleAITags(project.id)}>
+                        <Sparkles className="w-3.5 h-3.5 mr-2" />AI Tags
+                      </DropdownMenuItem>
+                      <DropdownMenuItem><Pencil className="w-3.5 h-3.5 mr-2" />Edit</DropdownMenuItem>
+                      <DropdownMenuItem className="text-destructive"><Trash2 className="w-3.5 h-3.5 mr-2" />Delete</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                {/* Mobile Card Row */}
+                <div className="md:hidden flex items-start gap-3 px-4 py-3 border-b border-border last:border-0">
+                  <div className="w-10 h-10 rounded-md bg-gradient-to-br from-muted to-muted/50 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        {project.featured && <Star className="w-3 h-3 text-amber-500 fill-amber-500 flex-shrink-0" />}
+                        <p className="text-[13px] font-medium truncate">{project.title}</p>
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="h-6 w-6 flex items-center justify-center rounded hover:bg-accent flex-shrink-0">
+                            <MoreHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleAITags(project.id)}>
+                            <Sparkles className="w-3.5 h-3.5 mr-2" />AI Tags
+                          </DropdownMenuItem>
+                          <DropdownMenuItem><Pencil className="w-3.5 h-3.5 mr-2" />Edit</DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive"><Trash2 className="w-3.5 h-3.5 mr-2" />Delete</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                     <p className="text-[12px] text-muted-foreground truncate mt-px">{project.description}</p>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 bg-muted/50 text-muted-foreground border-0">
+                        {project.category}
+                      </Badge>
+                      {JSON.parse(project.tags || '[]').slice(0, 2).map((tag: string) => (
+                        <Badge key={tag} variant="secondary" className="text-[10px] px-1.5 py-0 h-5 bg-muted/30 text-muted-foreground border-0">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                 </div>
-                {/* Category */}
-                <span className="text-[12px] text-muted-foreground">{project.category}</span>
-                {/* Tags */}
-                <div className="flex gap-1 flex-wrap">
-                  {JSON.parse(project.tags || '[]').slice(0, 2).map((tag: string) => (
-                    <Badge key={tag} variant="secondary" className="text-[10px] px-1.5 py-0 h-5 bg-muted/50 text-muted-foreground border-0">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-                {/* Actions */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 flex items-center justify-center rounded hover:bg-accent">
-                      <MoreHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleAITags(project.id)}>
-                      <Sparkles className="w-3.5 h-3.5 mr-2" />AI Tags
-                    </DropdownMenuItem>
-                    <DropdownMenuItem><Pencil className="w-3.5 h-3.5 mr-2" />Edit</DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive"><Trash2 className="w-3.5 h-3.5 mr-2" />Delete</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
               </motion.div>
             ))}
           </div>

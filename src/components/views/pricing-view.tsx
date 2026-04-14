@@ -151,7 +151,8 @@ export function PricingView() {
       {/* Competitor Comparison */}
       <div>
         <h2 className="text-[13px] font-medium text-muted-foreground uppercase tracking-wider mb-3">Competitor Price Comparison</h2>
-        <div className="border border-border rounded-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <div className="border border-border rounded-lg overflow-hidden min-w-[600px]">
           <div className="grid grid-cols-6 gap-4 px-4 py-2.5 border-b border-border bg-muted/20">
             <span className="text-[11px] font-medium text-muted-foreground uppercase">Feature</span>
             <span className="text-[11px] font-medium text-muted-foreground uppercase text-center">Reach OS</span>
@@ -180,6 +181,7 @@ export function PricingView() {
               ))}
             </div>
           ))}
+          </div>
         </div>
       </div>
     </div>

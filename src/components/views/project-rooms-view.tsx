@@ -154,7 +154,7 @@ export function ProjectRoomsView() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.15, delay: i * 0.02 }}
-                  className="flex items-center gap-3 px-4 py-3 border-b border-border last:border-0 hover:bg-accent/50 transition-colors cursor-pointer group"
+                  className="flex items-center gap-3 px-4 py-3 border-b border-border last:border-0 hover:bg-accent/50 transition-colors cursor-pointer group flex-wrap"
                   onClick={() => setView('project-room-detail', room.id)}
                 >
                   <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: phase.dot.replace('bg-', '') }} />
@@ -166,7 +166,7 @@ export function ProjectRoomsView() {
                       <span className={`text-[11px] capitalize ${phase.text}`}>{room.phase}</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 text-[11px] text-muted-foreground/50 flex-shrink-0">
+                  <div className="flex items-center gap-3 text-[11px] text-muted-foreground/50 flex-shrink-0 ml-auto">
                     <span className="flex items-center gap-1">
                       <MessageSquare className="w-3 h-3" />
                       {room.messages?.length || 0}
@@ -247,7 +247,7 @@ export function ProjectRoomDetailView() {
   const phase = phaseConfig[room.phase] || phaseConfig.discovery
 
   return (
-    <div className="space-y-3 h-[calc(100vh-7rem)] flex flex-col">
+    <div className="space-y-3 h-[calc(100vh-7rem)] md:h-[calc(100vh-5rem)] flex flex-col">
       {/* Header */}
       <div className="flex items-center gap-3 flex-shrink-0">
         <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground" onClick={() => setView('project-rooms')}>

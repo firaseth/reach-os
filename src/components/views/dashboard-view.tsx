@@ -98,7 +98,7 @@ export function DashboardView() {
   return (
     <div className="space-y-8">
       {/* Page Header */}
-      <div className="flex items-end justify-between">
+      <div className="flex items-end justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold tracking-tight text-foreground">
             Dashboard
@@ -171,9 +171,9 @@ export function DashboardView() {
                   </p>
                   <p className="text-[12px] text-muted-foreground truncate">{project.category} · {project.year}</p>
                 </div>
-                <div className="flex gap-1.5 flex-shrink-0">
+                <div className="flex gap-1.5 flex-shrink-0 max-w-[140px] overflow-hidden">
                   {JSON.parse(project.tags || '[]').slice(0, 2).map((tag: string) => (
-                    <Badge key={tag} variant="secondary" className="text-[10px] px-1.5 py-0 h-5 bg-muted/60 text-muted-foreground border-0">
+                    <Badge key={tag} variant="secondary" className="text-[10px] px-1.5 py-0 h-5 bg-muted/60 text-muted-foreground border-0 whitespace-nowrap">
                       {tag}
                     </Badge>
                   ))}
