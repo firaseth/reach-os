@@ -27,6 +27,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useToast } from '@/hooks/use-toast'
+import { fetchWithAuth } from '@/lib/api'
 
 interface ExportToolbarProps {
   reportType: 'revenue' | 'finance' | 'capacity' | 'portfolio'
@@ -43,7 +44,7 @@ export function ExportToolbar({ reportType, reportLabel }: ExportToolbarProps) {
 
   async function handleExportCSV() {
     try {
-      const res = await fetch(`/api/export/${reportType}?format=csv`)
+      const res = await fetchWithAuth(`/api/export/${reportType}?format=csv`)
       if (!res.ok) throw new Error('Export failed')
       const blob = await res.blob()
       const url = window.URL.createObjectURL(blob)
@@ -62,7 +63,7 @@ export function ExportToolbar({ reportType, reportLabel }: ExportToolbarProps) {
 
   async function handleExportJSON() {
     try {
-      const res = await fetch(`/api/export/${reportType}?format=json`)
+      const res = await fetchWithAuth(`/api/export/${reportType}?format=json`)
       if (!res.ok) throw new Error('Export failed')
       const data = await res.json()
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -83,9 +84,8 @@ export function ExportToolbar({ reportType, reportLabel }: ExportToolbarProps) {
   async function handleGenerateShare(expiresIn: '24h' | '7d' | '30d') {
     setGeneratingShare(true)
     try {
-      const res = await fetch('/api/export/share', {
+      const res = await fetchWithAuth('/api/export/share', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: reportType, expiresIn }),
       })
       if (!res.ok) throw new Error('Share failed')

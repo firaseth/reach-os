@@ -1,4 +1,5 @@
 import { db } from './src/lib/db'
+import bcrypt from 'bcryptjs'
 
 async function seed() {
   // Clean existing data
@@ -14,9 +15,13 @@ async function seed() {
   await db.pricingPlan.deleteMany()
   await db.user.deleteMany()
 
+  const hashedPassword = await bcrypt.hash('reachos2025', 12)
+
   const user = await db.user.create({
     data: {
       name: 'Engineer Firas',
+      email: 'firas@reachos.dev',
+      password: hashedPassword,
       title: 'Creative Director & Full-Stack Developer',
       bio: 'I help ambitious brands and startups find their voice through strategic design, web development, AI-powered tools, and business strategy. Building Reach OS to make creative tools accessible to everyone.',
       avatar: '',
@@ -385,6 +390,7 @@ async function seed() {
   )
 
   console.log('Reach OS seed data created successfully!')
+  console.log(`- User: firas@reachos.dev / reachos2025`)
   console.log(`- ${projects.length} projects`)
   console.log(`- ${projectIncome.length + retainerIncome.length} income records`)
   console.log(`- ${months.length} months of capacity data`)

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useAppStore } from '@/lib/store'
+import { fetchWithAuth } from '@/lib/api'
 import {
   Sparkles,
   Loader2,
@@ -40,7 +41,7 @@ export function CaseStudiesView() {
   const [newCS, setNewCS] = useState({ title: '' })
 
   useEffect(() => {
-    fetch('/api/case-studies')
+    fetchWithAuth('/api/case-studies')
       .then((r) => r.json())
       .then((data) => setCaseStudies(data))
       .catch(() => toast({ title: 'Error', description: 'Failed to load case studies', variant: 'destructive' }))
@@ -51,9 +52,8 @@ export function CaseStudiesView() {
     if (!newCS.title) return
     setAiLoading(true)
     try {
-      const res = await fetch('/api/ai', {
+      const res = await fetchWithAuth('/api/ai', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'generate-case-study',
           context: { title: newCS.title, description: '', category: 'Branding', tags: '' },
@@ -61,9 +61,8 @@ export function CaseStudiesView() {
       })
       const data = await res.json()
       const parsed = JSON.parse(data.content)
-      await fetch('/api/case-studies', {
+      await fetchWithAuth('/api/case-studies', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: parsed.title,
           subtitle: parsed.subtitle,
@@ -76,7 +75,7 @@ export function CaseStudiesView() {
       })
       setShowNewDialog(false)
       setNewCS({ title: '' })
-      const updated = await fetch('/api/case-studies').then((r) => r.json())
+      const updated = await fetchWithAuth('/api/case-studies').then((r) => r.json())
       setCaseStudies(updated)
       toast({ title: 'Draft Generated', description: 'AI created a case study draft.' })
     } catch {
@@ -209,7 +208,7 @@ export function CaseStudyDetailView() {
 
   useEffect(() => {
     if (!selectedId) return
-    fetch('/api/case-studies')
+    fetchWithAuth('/api/case-studies')
       .then((r) => r.json())
       .then((data) => setCaseStudy(data.find((cs: any) => cs.id === selectedId)))
       .catch(() => toast({ title: 'Error', description: 'Failed to load', variant: 'destructive' }))
@@ -220,9 +219,8 @@ export function CaseStudyDetailView() {
     if (!caseStudy) return
     setAiLoading(true)
     try {
-      const res = await fetch('/api/ai', {
+      const res = await fetchWithAuth('/api/ai', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'improve-case-study', context: caseStudy[section] }),
       })
       const data = await res.json()

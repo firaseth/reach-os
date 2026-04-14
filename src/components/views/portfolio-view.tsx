@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useAppStore } from '@/lib/store'
+import { fetchWithAuth } from '@/lib/api'
 import {
   Plus,
   Search,
@@ -56,7 +57,7 @@ export function PortfolioView() {
 
   async function fetchProjects() {
     try {
-      const res = await fetch('/api/projects')
+      const res = await fetchWithAuth('/api/projects')
       const data = await res.json()
       setProjects(data)
     } catch {
@@ -68,9 +69,8 @@ export function PortfolioView() {
 
   async function handleCreateProject() {
     try {
-      const res = await fetch('/api/projects', {
+      const res = await fetchWithAuth('/api/projects', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newProject),
       })
       const project = await res.json()
@@ -87,9 +87,8 @@ export function PortfolioView() {
     if (!newProject.title) return
     setAiLoading(true)
     try {
-      const res = await fetch('/api/ai', {
+      const res = await fetchWithAuth('/api/ai', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'write-project-description',
           context: { title: newProject.title, category: newProject.category, details: '' },
@@ -109,9 +108,8 @@ export function PortfolioView() {
     if (!project) return
     setAiLoading(true)
     try {
-      const res = await fetch('/api/ai', {
+      const res = await fetchWithAuth('/api/ai', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'suggest-project-tags',
           context: { title: project.title, description: project.description, category: project.category },

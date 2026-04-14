@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { fetchWithAuth } from '@/lib/api'
 import {
   Check,
   Sparkles,
@@ -14,7 +15,7 @@ export function PricingView() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/pricing')
+    fetchWithAuth('/api/pricing')
       .then((r) => r.json())
       .then(setPlans)
       .catch(console.error)

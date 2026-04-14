@@ -1,13 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { getCurrentUser } from '@/lib/auth'
 import { generateCSV, csvResponse } from '@/lib/csv'
 
 export async function GET(request: NextRequest) {
   try {
+    const currentUser = await getCurrentUser(request)
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { searchParams } = request.nextUrl
     const format = searchParams.get('format') || 'csv'
 
-    const logs = await db.capacityLog.findMany({ orderBy: { date: 'asc' } })
+    const logs = await db.capacityLog.findMany({ where: { userId: currentUser.userId }, orderBy: { date: 'asc' } })
 
     let totalHoursWorked = 0
     let totalHoursAvailable = 0

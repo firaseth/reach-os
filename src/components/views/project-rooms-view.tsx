@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { useAppStore } from '@/lib/store'
+import { fetchWithAuth } from '@/lib/api'
 import {
   Plus,
   ArrowLeft,
@@ -47,7 +48,7 @@ export function ProjectRoomsView() {
   const [newRoom, setNewRoom] = useState({ name: '', clientName: '', clientEmail: '', description: '' })
 
   useEffect(() => {
-    fetch('/api/client-rooms')
+    fetchWithAuth('/api/client-rooms')
       .then((r) => r.json())
       .then((data) => setRooms(data))
       .catch(() => toast({ title: 'Error', description: 'Failed to load rooms', variant: 'destructive' }))
@@ -56,9 +57,8 @@ export function ProjectRoomsView() {
 
   async function handleCreate() {
     try {
-      const res = await fetch('/api/client-rooms', {
+      const res = await fetchWithAuth('/api/client-rooms', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newRoom),
       })
       const room = await res.json()
@@ -198,7 +198,7 @@ export function ProjectRoomDetailView() {
 
   useEffect(() => {
     if (!selectedId) return
-    fetch('/api/client-rooms')
+    fetchWithAuth('/api/client-rooms')
       .then((r) => r.json())
       .then((data) => setRoom(data.find((r: any) => r.id === selectedId)))
       .finally(() => setLoading(false))
@@ -214,9 +214,8 @@ export function ProjectRoomDetailView() {
     if (!message.trim()) return
     setSending(true)
     try {
-      const res = await fetch('/api/client-rooms', {
+      const res = await fetchWithAuth('/api/client-rooms', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'message', roomId: selectedId, content: message, sender: 'user' }),
       })
       if (res.ok) {

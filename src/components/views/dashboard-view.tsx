@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useAppStore } from '@/lib/store'
+import { fetchWithAuth } from '@/lib/api'
 import {
   Briefcase,
   FileText,
@@ -37,10 +38,10 @@ export function DashboardView() {
     async function fetchData() {
       try {
         const [projectsRes, caseStudiesRes, pitchDecksRes, roomsRes] = await Promise.all([
-          fetch('/api/projects'),
-          fetch('/api/case-studies'),
-          fetch('/api/pitch-decks'),
-          fetch('/api/client-rooms'),
+          fetchWithAuth('/api/projects'),
+          fetchWithAuth('/api/case-studies'),
+          fetchWithAuth('/api/pitch-decks'),
+          fetchWithAuth('/api/client-rooms'),
         ])
         const projects = await projectsRes.json()
         const caseStudies = await caseStudiesRes.json()

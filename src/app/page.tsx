@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAppStore } from '@/lib/store'
+import { useAuth } from '@/components/auth-provider'
 import { AppSidebar } from '@/components/app-sidebar'
 import { MobileHeader } from '@/components/mobile-header'
 import { MobileBottomNav } from '@/components/mobile-bottom-nav'
@@ -16,13 +18,37 @@ import { PitchDecksView, PitchDeckDetailView } from '@/components/views/pitch-de
 import { ProjectRoomsView, ProjectRoomDetailView } from '@/components/views/project-rooms-view'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Loader2 } from 'lucide-react'
 
 export default function Home() {
   const { currentView, sidebarOpen } = useAppStore()
+  const { user, loading, isAuthenticated } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      router.push('/login')
+    }
+  }, [loading, isAuthenticated, router])
 
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [currentView])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0A0A0F] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-6 h-6 text-[#5E6AD2] animate-spin" />
+          <span className="text-[13px] text-white/40">Loading...</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return null
+  }
 
   const renderView = () => {
     switch (currentView) {

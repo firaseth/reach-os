@@ -1,6 +1,7 @@
 'use client'
 
 import { useAppStore } from '@/lib/store'
+import { useAuth } from '@/components/auth-provider'
 import { cn } from '@/lib/utils'
 import {
   LayoutDashboard,
@@ -16,6 +17,7 @@ import {
   PanelLeftClose,
   PanelLeft,
   X,
+  LogOut,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -24,7 +26,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { Separator } from '@/components/ui/separator'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 
 const navSections = [
   {
@@ -48,11 +50,20 @@ const navSections = [
   },
 ]
 
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/)
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+  return name.slice(0, 2).toUpperCase()
+}
+
 export function AppSidebar() {
   const {
     currentView, setView, sidebarOpen, toggleSidebar,
     mobileMenuOpen, setMobileMenuOpen
   } = useAppStore()
+  const { user, logout } = useAuth()
+
+  const initials = useMemo(() => user?.name ? getInitials(user.name) : '??', [user?.name])
 
   const isActive = (id: string) =>
     currentView === id ||
@@ -223,13 +234,22 @@ export function AppSidebar() {
             !(mobileMenuOpen || sidebarOpen) && 'p-0'
           )}>
             <div className="w-6 h-6 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0 ring-1 ring-primary/20">
-              <span className="text-[11px] font-semibold text-primary">EF</span>
+              <span className="text-[11px] font-semibold text-primary">{initials}</span>
             </div>
             {(mobileMenuOpen || sidebarOpen) && (
               <div className="min-w-0 flex-1">
-                <p className="text-[13px] font-medium text-foreground truncate leading-tight">Engineer Firas</p>
-                <p className="text-[11px] text-sidebar-foreground truncate leading-tight">Creative Director</p>
+                <p className="text-[13px] font-medium text-foreground truncate leading-tight">{user?.name || 'User'}</p>
+                <p className="text-[11px] text-sidebar-foreground truncate leading-tight">{user?.title || ''}</p>
               </div>
+            )}
+            {(mobileMenuOpen || sidebarOpen) && (
+              <button
+                onClick={logout}
+                className="h-7 w-7 flex items-center justify-center rounded-md text-sidebar-foreground/40 hover:text-red-400 hover:bg-red-500/10 transition-colors flex-shrink-0"
+                title="Sign out"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
             )}
           </div>
         </div>

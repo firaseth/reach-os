@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useAppStore } from '@/lib/store'
+import { fetchWithAuth } from '@/lib/api'
 import {
   Sparkles,
   Loader2,
@@ -56,7 +57,7 @@ export function PitchDecksView() {
   })
 
   useEffect(() => {
-    fetch('/api/pitch-decks')
+    fetchWithAuth('/api/pitch-decks')
       .then((r) => r.json())
       .then((data) => setPitchDecks(data))
       .catch(() => toast({ title: 'Error', description: 'Failed to load', variant: 'destructive' }))
@@ -68,17 +69,15 @@ export function PitchDecksView() {
     setAiLoading(true)
     try {
       const [problemRes, solutionRes] = await Promise.all([
-        fetch('/api/ai', {
+        fetchWithAuth('/api/ai', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             action: 'generate-pitch-problem',
             context: { clientName: newPitch.clientName, industry: newPitch.industry, context: newPitch.context, issues: newPitch.issues },
           }),
         }),
-        fetch('/api/ai', {
+        fetchWithAuth('/api/ai', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             action: 'generate-pitch-solution',
             context: { clientName: newPitch.clientName, problem: newPitch.issues, services: 'Branding, Design, Strategy' },
@@ -88,9 +87,8 @@ export function PitchDecksView() {
 
       const [problemData, solutionData] = await Promise.all([problemRes.json(), solutionRes.json()])
 
-      const res = await fetch('/api/pitch-decks', {
+      const res = await fetchWithAuth('/api/pitch-decks', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: newPitch.title,
           clientName: newPitch.clientName,
@@ -234,7 +232,7 @@ export function PitchDeckDetailView() {
 
   useEffect(() => {
     if (!selectedId) return
-    fetch('/api/pitch-decks')
+    fetchWithAuth('/api/pitch-decks')
       .then((r) => r.json())
       .then((data) => setPitch(data.find((p: any) => p.id === selectedId)))
       .finally(() => setLoading(false))

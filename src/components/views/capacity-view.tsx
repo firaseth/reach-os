@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
+import { fetchWithAuth } from '@/lib/api'
 import {
   Clock,
   TrendingUp,
@@ -18,7 +19,7 @@ export function CapacityView() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    Promise.all([fetch('/api/capacity').then((r) => r.json()), fetch('/api/projects').then((r) => r.json())])
+    Promise.all([fetchWithAuth('/api/capacity').then((r) => r.json()), fetchWithAuth('/api/projects').then((r) => r.json())])
       .then(([l, p]) => { setLogs(l); setProjects(p) })
       .catch(console.error)
       .finally(() => setLoading(false))

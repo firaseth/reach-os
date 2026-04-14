@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
+import { fetchWithAuth } from '@/lib/api'
 import {
   DollarSign,
   TrendingUp,
@@ -22,7 +23,7 @@ export function FinanceView() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/finance')
+    fetchWithAuth('/api/finance')
       .then((r) => r.json())
       .then(setData)
       .catch(console.error)
