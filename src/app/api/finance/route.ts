@@ -79,7 +79,7 @@ export async function DELETE(request: Request) {
   try {
     const currentUser = await getCurrentUser(request)
     if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    const body = await request.json()
+    const body = await request.json().catch(() => ({}))
     const { id, type } = body
     if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 })
     if (type === 'income') {

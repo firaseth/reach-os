@@ -325,3 +325,20 @@ Stage Summary:
 - Edit dialog with 10 form fields including status Select and deliverables multi-line input
 - Consistent design language: text-[13px] font size, h-9 inputs, dark theme, professional styling
 
+
+---
+Task ID: 1
+Agent: Main Agent
+Task: Verify and fix edit/delete CRUD across Reach OS
+
+Work Log:
+- Reviewed all API routes: projects, case-studies, pitch-decks, client-rooms, finance, capacity — all have PUT + DELETE
+- Reviewed all view components: portfolio, case-studies, pitch-decks, project-rooms, finance, capacity — all have edit dialogs, delete confirmations, and action buttons
+- Found bug: /api/capacity DELETE expected JSON body but view sends query param — fixed to match projects/case-studies pattern
+- Found bug: /api/finance DELETE would crash on empty body — added .catch(() => ({})) safety
+- Verified build compiles cleanly with 0 errors
+
+Stage Summary:
+- CRUD was already fully implemented from a previous session
+- Fixed 2 API bugs in DELETE handlers (capacity route query param handling, finance route body parsing)
+- Build passes clean — 23 pages, 15 API routes, all static

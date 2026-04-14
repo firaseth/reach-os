@@ -55,8 +55,8 @@ export async function DELETE(request: Request) {
   try {
     const currentUser = await getCurrentUser(request)
     if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    const body = await request.json()
-    const { id } = body
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id') || (await request.json().catch(() => ({}))).id
     if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 })
     await db.capacityLog.delete({ where: { id, userId: currentUser.userId } })
     return NextResponse.json({ success: true })
