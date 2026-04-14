@@ -13,7 +13,6 @@ import {
   MessageSquare,
   Users,
   Package,
-  Search,
   Circle,
   X,
   MoreHorizontal,
@@ -27,8 +26,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog'
+import { SearchInput } from '@/components/search-input'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -195,15 +195,12 @@ export function ProjectRoomsView() {
       </div>
 
       {/* Filter */}
-      <div className="relative max-w-xs">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
-        <Input placeholder="Filter rooms..." className="h-8 pl-8 text-[13px] bg-muted/30 border-transparent focus:border-border" value={search} onChange={(e) => setSearch(e.target.value)} />
-        {search && (
-          <button className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground" onClick={() => setSearch('')}>
-            <X className="w-3 h-3" />
-          </button>
-        )}
-      </div>
+      <SearchInput
+        placeholder="Filter rooms..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        onClear={() => setSearch('')}
+      />
 
       {/* Room List */}
       <AnimatePresence mode="wait">
@@ -359,27 +356,15 @@ export function ProjectRoomsView() {
       </Dialog>
 
       {/* Delete Confirmation */}
-      <AlertDialog open={!!deletingRoom} onOpenChange={(open) => !open && setDeletingRoom(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-base">Delete Room</AlertDialogTitle>
-            <AlertDialogDescription className="text-[13px]">
-              Are you sure you want to delete room &quot;{deletingRoom?.name}&quot;? This will also delete all messages and deliverables in this room.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="text-[13px]">Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 text-[13px]"
-              onClick={handleDelete}
-              disabled={deleteLoading}
-            >
-              {deleteLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : null}
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteConfirmDialog
+        open={!!deletingRoom}
+        onOpenChange={(open) => !open && setDeletingRoom(null)}
+        title="Delete Room"
+        description="Are you sure you want to delete room"
+        itemName={deletingRoom?.name}
+        loading={deleteLoading}
+        onConfirm={handleDelete}
+      />
     </div>
   )
 }
@@ -719,27 +704,15 @@ export function ProjectRoomDetailView() {
       </Dialog>
 
       {/* Delete Confirmation */}
-      <AlertDialog open={!!deletingRoom} onOpenChange={(open) => !open && setDeletingRoom(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-base">Delete Room</AlertDialogTitle>
-            <AlertDialogDescription className="text-[13px]">
-              Are you sure you want to delete room &quot;{deletingRoom?.name}&quot;? This will also delete all messages and deliverables in this room.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="text-[13px]">Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 text-[13px]"
-              onClick={handleDelete}
-              disabled={deleteLoading}
-            >
-              {deleteLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : null}
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteConfirmDialog
+        open={!!deletingRoom}
+        onOpenChange={(open) => !open && setDeletingRoom(null)}
+        title="Delete Room"
+        description="Are you sure you want to delete room"
+        itemName={deletingRoom?.name}
+        loading={deleteLoading}
+        onConfirm={handleDelete}
+      />
     </div>
   )
 }

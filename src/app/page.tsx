@@ -2,23 +2,73 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import { useAppStore } from '@/lib/store'
 import { useAuth } from '@/components/auth-provider'
 import { AppSidebar } from '@/components/app-sidebar'
 import { MobileHeader } from '@/components/mobile-header'
 import { MobileBottomNav } from '@/components/mobile-bottom-nav'
-import { DashboardView } from '@/components/views/dashboard-view'
-import { RevenueView } from '@/components/views/revenue-view'
-import { FinanceView } from '@/components/views/finance-view'
-import { CapacityView } from '@/components/views/capacity-view'
-import { PricingView } from '@/components/views/pricing-view'
-import { PortfolioView } from '@/components/views/portfolio-view'
-import { CaseStudiesView, CaseStudyDetailView } from '@/components/views/case-studies-view'
-import { PitchDecksView, PitchDeckDetailView } from '@/components/views/pitch-decks-view'
-import { ProjectRoomsView, ProjectRoomDetailView } from '@/components/views/project-rooms-view'
+import { ErrorBoundary } from '@/components/error-boundary'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
+
+const loadingSkeleton = (
+  <div className="space-y-4">
+    {[...Array(4)].map((_, i) => (
+      <div key={i} className="h-6 bg-muted/30 rounded animate-pulse" />
+    ))}
+  </div>
+)
+
+const DashboardView = dynamic(
+  () => import('@/components/views/dashboard-view').then(m => ({ default: m.DashboardView })),
+  { loading: () => loadingSkeleton }
+)
+const RevenueView = dynamic(
+  () => import('@/components/views/revenue-view').then(m => ({ default: m.RevenueView })),
+  { loading: () => loadingSkeleton }
+)
+const FinanceView = dynamic(
+  () => import('@/components/views/finance-view').then(m => ({ default: m.FinanceView })),
+  { loading: () => loadingSkeleton }
+)
+const CapacityView = dynamic(
+  () => import('@/components/views/capacity-view').then(m => ({ default: m.CapacityView })),
+  { loading: () => loadingSkeleton }
+)
+const PricingView = dynamic(
+  () => import('@/components/views/pricing-view').then(m => ({ default: m.PricingView })),
+  { loading: () => loadingSkeleton }
+)
+const PortfolioView = dynamic(
+  () => import('@/components/views/portfolio-view').then(m => ({ default: m.PortfolioView })),
+  { loading: () => loadingSkeleton }
+)
+const CaseStudiesView = dynamic(
+  () => import('@/components/views/case-studies-view').then(m => ({ default: m.CaseStudiesView })),
+  { loading: () => loadingSkeleton }
+)
+const CaseStudyDetailView = dynamic(
+  () => import('@/components/views/case-studies-view').then(m => ({ default: m.CaseStudyDetailView })),
+  { loading: () => loadingSkeleton }
+)
+const PitchDecksView = dynamic(
+  () => import('@/components/views/pitch-decks-view').then(m => ({ default: m.PitchDecksView })),
+  { loading: () => loadingSkeleton }
+)
+const PitchDeckDetailView = dynamic(
+  () => import('@/components/views/pitch-decks-view').then(m => ({ default: m.PitchDeckDetailView })),
+  { loading: () => loadingSkeleton }
+)
+const ProjectRoomsView = dynamic(
+  () => import('@/components/views/project-rooms-view').then(m => ({ default: m.ProjectRoomsView })),
+  { loading: () => loadingSkeleton }
+)
+const ProjectRoomDetailView = dynamic(
+  () => import('@/components/views/project-rooms-view').then(m => ({ default: m.ProjectRoomDetailView })),
+  { loading: () => loadingSkeleton }
+)
 
 export default function Home() {
   const { currentView, sidebarOpen } = useAppStore()
@@ -87,7 +137,7 @@ export default function Home() {
         )}
       >
         <div className="p-4 md:p-6 lg:p-8 max-w-5xl mx-auto">
-          <AnimatePresence mode="wait">
+          <AnimatePresence>
             <motion.div
               key={currentView}
               initial={{ opacity: 0 }}
@@ -95,7 +145,7 @@ export default function Home() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
             >
-              {renderView()}
+              <ErrorBoundary>{renderView()}</ErrorBoundary>
             </motion.div>
           </AnimatePresence>
         </div>

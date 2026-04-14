@@ -2,6 +2,7 @@
 
 import { useAppStore } from '@/lib/store'
 import { useAuth } from '@/components/auth-provider'
+import { getInitials } from '@/lib/helpers'
 import { cn } from '@/lib/utils'
 import {
   LayoutDashboard,
@@ -50,17 +51,13 @@ const navSections = [
   },
 ]
 
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/)
-  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-  return name.slice(0, 2).toUpperCase()
-}
-
 export function AppSidebar() {
-  const {
-    currentView, setView, sidebarOpen, toggleSidebar,
-    mobileMenuOpen, setMobileMenuOpen
-  } = useAppStore()
+  const currentView = useAppStore(s => s.currentView)
+  const setView = useAppStore(s => s.setView)
+  const sidebarOpen = useAppStore(s => s.sidebarOpen)
+  const toggleSidebar = useAppStore(s => s.toggleSidebar)
+  const mobileMenuOpen = useAppStore(s => s.mobileMenuOpen)
+  const setMobileMenuOpen = useAppStore(s => s.setMobileMenuOpen)
   const { user, logout } = useAuth()
 
   const initials = useMemo(() => user?.name ? getInitials(user.name) : '??', [user?.name])

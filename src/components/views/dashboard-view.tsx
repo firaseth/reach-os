@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useAppStore } from '@/lib/store'
 import { fetchWithAuth } from '@/lib/api'
+import { safeJsonParse } from '@/lib/helpers'
 import {
   Briefcase,
   FileText,
@@ -173,7 +174,7 @@ export function DashboardView() {
                   <p className="text-[12px] text-muted-foreground truncate">{project.category} · {project.year}</p>
                 </div>
                 <div className="flex gap-1.5 flex-shrink-0 max-w-[140px] overflow-hidden">
-                  {JSON.parse(project.tags || '[]').slice(0, 2).map((tag: string) => (
+                  {safeJsonParse<string[]>(project.tags, []).slice(0, 2).map((tag: string) => (
                     <Badge key={tag} variant="secondary" className="text-[10px] px-1.5 py-0 h-5 bg-muted/60 text-muted-foreground border-0 whitespace-nowrap">
                       {tag}
                     </Badge>

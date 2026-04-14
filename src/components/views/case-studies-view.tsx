@@ -14,8 +14,6 @@ import {
   Quote,
   ChevronRight,
   FileText,
-  Search,
-  X,
   Plus,
   MoreHorizontal,
   Pencil,
@@ -24,6 +22,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog'
+import { SearchInput } from '@/components/search-input'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -207,20 +207,12 @@ export function CaseStudiesView() {
       </div>
 
       {/* Filter */}
-      <div className="relative max-w-xs">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
-        <Input
-          placeholder="Filter case studies..."
-          className="h-8 pl-8 text-[13px] bg-muted/30 border-transparent focus:border-border"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        {search && (
-          <button className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground" onClick={() => setSearch('')}>
-            <X className="w-3 h-3" />
-          </button>
-        )}
-      </div>
+      <SearchInput
+        placeholder="Filter case studies..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        onClear={() => setSearch('')}
+      />
 
       {/* List */}
       <AnimatePresence mode="wait">
@@ -368,25 +360,15 @@ export function CaseStudiesView() {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={!!deletingCS} onOpenChange={(open) => !open && setDeletingCS(null)}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="text-base">Delete Case Study</DialogTitle>
-            <DialogDescription className="text-[13px] text-muted-foreground">
-              Are you sure you want to delete &ldquo;{deletingCS?.title}&rdquo;? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 pt-2">
-            <Button variant="ghost" size="sm" className="h-8 text-[13px]" onClick={() => setDeletingCS(null)} disabled={deleteSaving}>
-              Cancel
-            </Button>
-            <Button variant="destructive" size="sm" className="h-8 text-[13px]" onClick={handleConfirmDelete} disabled={deleteSaving}>
-              {deleteSaving && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />}
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteConfirmDialog
+        open={!!deletingCS}
+        onOpenChange={(open) => !open && setDeletingCS(null)}
+        title="Delete Case Study"
+        description="Are you sure you want to delete"
+        itemName={deletingCS?.title}
+        loading={deleteSaving}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   )
 }
@@ -702,25 +684,15 @@ export function CaseStudyDetailView() {
       </Dialog>
 
       {/* Delete Confirmation Dialog (Detail View) */}
-      <Dialog open={!!deletingCS} onOpenChange={(open) => !open && setDeletingCS(null)}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="text-base">Delete Case Study</DialogTitle>
-            <DialogDescription className="text-[13px] text-muted-foreground">
-              Are you sure you want to delete &ldquo;{deletingCS?.title}&rdquo;? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 pt-2">
-            <Button variant="ghost" size="sm" className="h-8 text-[13px]" onClick={() => setDeletingCS(null)} disabled={deleteSaving}>
-              Cancel
-            </Button>
-            <Button variant="destructive" size="sm" className="h-8 text-[13px]" onClick={handleConfirmDeleteFromDetail} disabled={deleteSaving}>
-              {deleteSaving && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />}
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteConfirmDialog
+        open={!!deletingCS}
+        onOpenChange={(open) => !open && setDeletingCS(null)}
+        title="Delete Case Study"
+        description="Are you sure you want to delete"
+        itemName={deletingCS?.title}
+        loading={deleteSaving}
+        onConfirm={handleConfirmDeleteFromDetail}
+      />
     </div>
   )
 }

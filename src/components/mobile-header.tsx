@@ -2,24 +2,19 @@
 
 import { useAppStore } from '@/lib/store'
 import { useAuth } from '@/components/auth-provider'
+import { getInitials } from '@/lib/helpers'
 import { Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useMemo } from 'react'
 
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/)
-  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-  return name.slice(0, 2).toUpperCase()
-}
-
 export function MobileHeader() {
-  const { toggleMobileMenu } = useAppStore()
+  const toggleMobileMenu = useAppStore(s => s.toggleMobileMenu)
   const { user } = useAuth()
 
   const initials = useMemo(() => user?.name ? getInitials(user.name) : '??', [user?.name])
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-30 flex items-center justify-between h-12 px-4 bg-[#0D0D14] border-b border-border md:hidden">
+    <header className="fixed top-0 left-0 right-0 z-30 flex items-center justify-between h-12 px-4 bg-sidebar border-b border-border md:hidden">
       <Button
         variant="ghost"
         size="icon"

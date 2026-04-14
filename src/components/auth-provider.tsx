@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 
 interface AuthUser {
@@ -98,17 +98,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push('/login')
   }, [router])
 
+  const contextValue = useMemo(() => ({
+    user,
+    loading,
+    isAuthenticated: !!user,
+    login,
+    register,
+    logout,
+  }), [user, loading, login, register, logout])
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        isAuthenticated: !!user,
-        login,
-        register,
-        logout,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   )

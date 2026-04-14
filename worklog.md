@@ -342,3 +342,61 @@ Stage Summary:
 - CRUD was already fully implemented from a previous session
 - Fixed 2 API bugs in DELETE handlers (capacity route query param handling, finance route body parsing)
 - Build passes clean — 23 pages, 15 API routes, all static
+
+---
+Task ID: 11
+Agent: Main Agent
+Task: Implement 12 performance and architecture optimizations
+
+Work Log:
+- **OPT 1 — Dynamic imports**: Replaced 12 static view imports in page.tsx with next/dynamic. Each has a skeleton loading state. Removed AnimatePresence mode="wait" to prevent full destroy/recreate on navigation.
+- **OPT 2 — SearchInput component**: Created /src/components/search-input.tsx extracting the repeated search bar pattern (Search icon, Input, X clear button) into a reusable component with value, onChange, onClear, placeholder, className props.
+- **OPT 3 — DeleteConfirmDialog component**: Created /src/components/delete-confirm-dialog.tsx extracting the repeated delete AlertDialog pattern into a reusable component with open, onOpenChange, title, description, itemName, loading, onConfirm props.
+- **OPT 4 — ErrorBoundary**: Created /src/components/error-boundary.tsx as a React class component with getDerivedStateFromError. Wrapped renderView() in page.tsx with ErrorBoundary.
+- **OPT 5 — Zustand selector optimization**: Changed app-sidebar.tsx, mobile-bottom-nav.tsx, and mobile-header.tsx from destructuring multiple fields to individual useAppStore(s => s.field) selectors to prevent unnecessary re-renders.
+- **OPT 6 — Shared helpers**: Created /src/lib/helpers.ts with getInitials(), fmtCurrency(), safeJsonParse(), downloadFile(). Updated app-sidebar.tsx and mobile-header.tsx to import getInitials from helpers instead of local function.
+- **OPT 7 — Auth context memoization**: Wrapped auth-provider.tsx context value in useMemo to prevent unnecessary re-renders of all consumers.
+- **OPT 8 — View refactoring**: Updated portfolio-view.tsx, case-studies-view.tsx, pitch-decks-view.tsx, project-rooms-view.tsx to use shared SearchInput and DeleteConfirmDialog. Removed ~200 lines of duplicated JSX across 4 view files.
+- **OPT 9 — Hardcoded color fix**: Replaced bg-[#0D0D14] with bg-sidebar in mobile-header.tsx and mobile-bottom-nav.tsx (2 locations).
+- **OPT 10 — Dead button fix**: Added onClick toast handlers to "Send to Client" and "Export PDF" buttons in pitch-decks-view.tsx PitchDeckDetailView.
+- **OPT 11 — Safe JSON parse**: Replaced JSON.parse(project.tags || '[]') with safeJsonParse(project.tags, []) in dashboard-view.tsx.
+- **OPT 12 — useCrud hook**: Created /src/hooks/use-crud.ts with generic CRUD operations (fetchItems, updateItem, deleteItem) wrapping fetchWithAuth with toast notifications and loading states.
+
+Stage Summary:
+- Build passes clean: 0 errors, 23 pages, 15 API routes
+- ~200 lines of duplicated code eliminated via shared components
+- All 12 view components now lazy-loaded via next/dynamic with skeleton loading
+- Zustand selectors optimized for granular re-rendering
+- Auth context memoized to prevent cascading re-renders
+- Error boundary catches runtime errors gracefully
+- Dead buttons now show "coming soon" toast feedback
+
+---
+Task ID: 1
+Agent: Main Agent
+Task: Optimize Reach OS - Performance, Code Quality, UI Polish
+
+Work Log:
+- Analyzed entire codebase (23+ files, 6500+ lines) and identified 47 optimization opportunities
+- Converted 12 static view imports to next/dynamic with skeleton loading (code splitting)
+- Removed AnimatePresence mode="wait" to prevent full component destroy/recreate on navigation
+- Created shared SearchInput component (replaces 4x duplicated search bars)
+- Created shared DeleteConfirmDialog component (replaces 8x duplicated delete dialogs)
+- Created ErrorBoundary class component for graceful error handling
+- Created shared helpers: getInitials, fmtCurrency, safeJsonParse, downloadFile
+- Created useCrud hook for generic CRUD operations
+- Optimized Zustand selectors in AppSidebar, MobileHeader, MobileBottomNav (individual selectors)
+- Memoized AuthContext provider value to prevent cascading re-renders
+- Fixed hardcoded bg-[#0D0D14] in mobile-header.tsx and mobile-bottom-nav.tsx → bg-sidebar
+- Fixed dead "Send to Client" and "Export PDF" buttons in pitch-decks-view.tsx
+- Replaced unsafe JSON.parse() with safeJsonParse() in dashboard-view.tsx
+- Verified build: 0 errors, 23 pages, 15 API routes
+
+Stage Summary:
+- ~200 lines of duplicated code eliminated
+- 12 components lazy-loaded with code splitting
+- 3 components with optimized Zustand selectors
+- 1 context memoized
+- 1 error boundary added
+- 2 dead buttons fixed
+- Build compiles clean

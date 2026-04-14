@@ -5,30 +5,20 @@ import { useAppStore } from '@/lib/store'
 import { fetchWithAuth } from '@/lib/api'
 import {
   Plus,
-  Search,
   Star,
   Sparkles,
   Loader2,
   MoreHorizontal,
   Pencil,
   Trash2,
-  X,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from '@/components/ui/alert-dialog'
+import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog'
+import { SearchInput } from '@/components/search-input'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -282,23 +272,13 @@ export function PortfolioView() {
 
       {/* Filters */}
       <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-xs min-w-0">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
-          <Input
-            placeholder="Filter projects..."
-            className="h-8 pl-8 text-[13px] bg-muted/30 border-transparent focus:border-border"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          {search && (
-            <button
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground"
-              onClick={() => setSearch('')}
-            >
-              <X className="w-3 h-3" />
-            </button>
-          )}
-        </div>
+        <SearchInput
+          placeholder="Filter projects..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          onClear={() => setSearch('')}
+          className="flex-1"
+        />
         <div className="flex gap-1 overflow-x-auto flex-shrink-0 pb-1 -mb-1 scrollbar-none">
           {['all', ...categories.slice(0, 4)].map((c) => (
             <button
@@ -508,27 +488,15 @@ export function PortfolioView() {
       </Dialog>
 
       {/* Delete Project Confirmation */}
-      <AlertDialog open={!!deletingProject} onOpenChange={(open) => { if (!open) setDeletingProject(null) }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-base">Delete Project</AlertDialogTitle>
-            <AlertDialogDescription className="text-[13px]">
-              Are you sure you want to delete &ldquo;{deletingProject?.title}&rdquo;? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="h-8 text-[13px]">Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="h-8 text-[13px] bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={(e) => { e.preventDefault(); handleDeleteProject() }}
-              disabled={deleteLoading}
-            >
-              {deleteLoading && <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />}
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteConfirmDialog
+        open={!!deletingProject}
+        onOpenChange={(open) => !open && setDeletingProject(null)}
+        title="Delete Project"
+        description="Are you sure you want to delete"
+        itemName={deletingProject?.title}
+        loading={deleteLoading}
+        onConfirm={handleDeleteProject}
+      />
     </div>
   )
 }

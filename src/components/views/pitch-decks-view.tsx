@@ -17,7 +17,6 @@ import {
   Presentation,
   CheckCircle2,
   FileText,
-  Search,
   X,
   Circle,
   MoreHorizontal,
@@ -27,12 +26,13 @@ import {
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog'
+import { SearchInput } from '@/components/search-input'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -245,15 +245,12 @@ export function PitchDecksView() {
       </div>
 
       {/* Filter */}
-      <div className="relative max-w-xs">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
-        <Input placeholder="Filter proposals..." className="h-8 pl-8 text-[13px] bg-muted/30 border-transparent focus:border-border" value={search} onChange={(e) => setSearch(e.target.value)} />
-        {search && (
-          <button className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground" onClick={() => setSearch('')}>
-            <X className="w-3 h-3" />
-          </button>
-        )}
-      </div>
+      <SearchInput
+        placeholder="Filter proposals..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        onClear={() => setSearch('')}
+      />
 
       {/* List */}
       <AnimatePresence mode="wait">
@@ -379,23 +376,15 @@ export function PitchDecksView() {
       </Dialog>
 
       {/* Delete Confirmation */}
-      <AlertDialog open={!!deletingPitch} onOpenChange={(open) => { if (!open) setDeletingPitch(null) }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-base">Delete Proposal</AlertDialogTitle>
-            <AlertDialogDescription className="text-[13px]">
-              Are you sure you want to delete &quot;{deletingPitch?.title}&quot;? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="text-[13px]">Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} disabled={deleteLoading} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 text-[13px]">
-              {deleteLoading && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />}
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteConfirmDialog
+        open={!!deletingPitch}
+        onOpenChange={(open) => { if (!open) setDeletingPitch(null) }}
+        title="Delete Proposal"
+        description="Are you sure you want to delete"
+        itemName={deletingPitch?.title}
+        loading={deleteLoading}
+        onConfirm={handleDelete}
+      />
     </div>
   )
 }
@@ -608,10 +597,10 @@ export function PitchDeckDetailView() {
 
       {/* Actions */}
       <div className="flex gap-2 pt-2">
-        <Button size="sm" className="h-8 text-[13px]">
+        <Button size="sm" className="h-8 text-[13px]" onClick={() => toast({ title: 'Coming soon', description: 'Send to Client feature is under development.' })}>
           <Send className="w-3.5 h-3.5 mr-1.5" /> Send to Client
         </Button>
-        <Button variant="outline" size="sm" className="h-8 text-[13px]">
+        <Button variant="outline" size="sm" className="h-8 text-[13px]" onClick={() => toast({ title: 'Coming soon', description: 'Export PDF feature is under development.' })}>
           <Presentation className="w-3.5 h-3.5 mr-1.5" /> Export PDF
         </Button>
       </div>
@@ -689,23 +678,15 @@ export function PitchDeckDetailView() {
       </Dialog>
 
       {/* Delete Confirmation */}
-      <AlertDialog open={!!deletingPitch} onOpenChange={(open) => { if (!open) setDeletingPitch(null) }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-base">Delete Proposal</AlertDialogTitle>
-            <AlertDialogDescription className="text-[13px]">
-              Are you sure you want to delete &quot;{deletingPitch?.title}&quot;? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="text-[13px]">Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} disabled={deleteLoading} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 text-[13px]">
-              {deleteLoading && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />}
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteConfirmDialog
+        open={!!deletingPitch}
+        onOpenChange={(open) => { if (!open) setDeletingPitch(null) }}
+        title="Delete Proposal"
+        description="Are you sure you want to delete"
+        itemName={deletingPitch?.title}
+        loading={deleteLoading}
+        onConfirm={handleDelete}
+      />
     </div>
   )
 }

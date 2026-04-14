@@ -35,7 +35,9 @@ const moreNavItems = [
 ]
 
 export function MobileBottomNav() {
-  const { currentView, setView, setMobileMenuOpen } = useAppStore()
+  const currentView = useAppStore(s => s.currentView)
+  const setView = useAppStore(s => s.setView)
+  const setMobileMenuOpen = useAppStore(s => s.setMobileMenuOpen)
   const [moreOpen, setMoreOpen] = useState(false)
 
   const isActive = (id: ViewType) =>
@@ -51,7 +53,7 @@ export function MobileBottomNav() {
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-30 h-14 bg-[#0D0D14] border-t border-border md:hidden safe-area-inset-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-30 h-14 bg-sidebar border-t border-border md:hidden safe-area-inset-bottom">
       <div className="flex items-center justify-around h-full px-1">
         {mainNavItems.map((item) => {
           const active = isActive(item.id)
@@ -89,7 +91,7 @@ export function MobileBottomNav() {
               <span className="text-[10px] leading-none font-medium">More</span>
             </button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="rounded-t-xl bg-[#0D0D14] border-border p-0">
+          <SheetContent side="bottom" className="rounded-t-xl bg-sidebar border-border p-0">
             <SheetTitle className="sr-only">More navigation</SheetTitle>
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
               <span className="text-[13px] font-semibold text-foreground">More</span>
