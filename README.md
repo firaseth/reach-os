@@ -1,5 +1,8 @@
 # Reach OS
 
+![Reach OS Banner](./public/banner.png)
+
+
 > **The all-in-one creative studio operating system.** Portfolio builder, business proposal generator, client project rooms, and business intelligence — unified in a single, beautifully crafted platform.
 
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
