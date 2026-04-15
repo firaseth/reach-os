@@ -1,1 +1,48 @@
+version: "3.9"
 
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    container_name: reach-os-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+    volumes:
+      # Persist SQLite database if using file-based DB
+      - db-data:/app/prisma
+    depends_on:
+      - caddy
+    networks:
+      - reach-net
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: reach-os-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - reach-net
+
+volumes:
+  db-data:
+  caddy-data:
+  caddy-config:
+
+networks:
+  reach-net:
+    driver: bridge
