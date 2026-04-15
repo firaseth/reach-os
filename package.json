@@ -99,3 +99,11 @@
     "typescript": "^5"
   }
 }
+"postinstall":,
+"prisma generate"
+"type-check",
+"lint:fix",
+"db:migrate:prod",
+"db:studio"
+"engines"
+
