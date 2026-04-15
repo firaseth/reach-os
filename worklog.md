@@ -99,7 +99,7 @@ Work Log:
 - Created src/proxy.ts: API route protection (requires Bearer token)
 - Updated ALL 14 API routes with getCurrentUser() auth check and userId filtering
 - Updated ALL 11 client-side view components to use fetchWithAuth()
-- Updated seed.ts: default user firas@reachos.dev / reachos2025 with hashed password
+- Updated seed.ts: default user admin@reachos.io / ******** with hashed password
 - Database reset and re-seeded successfully
 - Build compiles clean (0 errors, 23 pages, 22 routes)
 
@@ -109,7 +109,7 @@ Stage Summary:
 - All data queries filtered by authenticated user ID
 - Beautiful on-brand login/register pages
 - Dynamic user display in sidebar and mobile header
-- Default credentials: firas@reachos.dev / reachos2025
+- Default credentials: admin@reachos.io / ********
 
 ---
 Task ID: 6

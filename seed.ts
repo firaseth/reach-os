@@ -19,8 +19,8 @@ async function seed() {
 
   const user = await db.user.create({
     data: {
-      name: 'Engineer Firas',
-      email: 'firas@reachos.dev',
+      name: 'Reach Studio Admin',
+      email: 'admin@reachos.io',
       password: hashedPassword,
       title: 'Creative Director & Full-Stack Developer',
       bio: 'I help ambitious brands and startups find their voice through strategic design, web development, AI-powered tools, and business strategy. Building Reach OS to make creative tools accessible to everyone.',
@@ -390,7 +390,7 @@ async function seed() {
   )
 
   console.log('Reach OS seed data created successfully!')
-  console.log(`- User: firas@reachos.dev / reachos2025`)
+  console.log(`- User: admin@reachos.io / reachos2025`)
   console.log(`- ${projects.length} projects`)
   console.log(`- ${projectIncome.length + retainerIncome.length} income records`)
   console.log(`- ${months.length} months of capacity data`)

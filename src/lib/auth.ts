@@ -2,7 +2,16 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import { db } from './db'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'reach-os-secret-key-change-in-production'
+const JWT_SECRET = process.env.JWT_SECRET
+
+if (!JWT_SECRET) {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('JWT_SECRET must be set in production environment')
+  }
+}
+
+const FINAL_SECRET = JWT_SECRET || 'reach-os-dev-key-only'
+
 
 export interface AuthPayload {
   userId: string
@@ -19,12 +28,12 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 }
 
 export function generateToken(payload: AuthPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' })
+  return jwt.sign(payload, FINAL_SECRET, { expiresIn: '7d' })
 }
 
 export function verifyToken(token: string): AuthPayload | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as AuthPayload
+    return jwt.verify(token, FINAL_SECRET) as AuthPayload
   } catch {
     return null
   }

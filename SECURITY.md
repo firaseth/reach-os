@@ -14,7 +14,7 @@
 Instead, report them privately via one of these methods:
 
 1. **GitHub Private Vulnerability Reporting** (preferred):  
-   Go to the [Security tab](https://github.com/firaseth/reach-os/security/advisories/new) and click "Report a vulnerability".
+   Go to the [Security tab](https://github.com/YOUR_USERNAME/reach-os/security/advisories/new) and click "Report a vulnerability".
 
 2. **Email**: Contact the maintainer directly through their GitHub profile.
 
